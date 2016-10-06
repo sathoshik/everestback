@@ -20,7 +20,7 @@ Quick Daily Environment setup:
 1. open terminal 
 2. Run "$ chmod a+x ./QuickDevDB.sh" *Only required the first time you do this, otherwise just skip to step 3*
 3. Run "$ sh ./QuickDevDB.sh"
-4. open new terminal
+4. open a new terminal
 5. Run "$ node server"
 
 Das it!
