@@ -1,0 +1,17 @@
+{
+  "name": "chat-implementation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zain Khan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.10.2",
+    "mongodb": "^2.2.10",
+    "mongoose": "^4.6.2",
+    "socket.io": "^1.4.8"
+  }
+}
