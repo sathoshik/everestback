@@ -1,15 +1,16 @@
 Instructions on Initializing the EverestBack repo:
 1. cd into the current current directory in terminal
 2. Run "$ npm install"
-3. Run "$ mongod --dbpath=THE ABSOLUTE PATH TO YOUR PROJECT ENDING WITH /data"
+3. Run "$ mkdir data"
+4. Run "$ mongod --dbpath=THE ABSOLUTE PATH TO YOUR PROJECT ENDING WITH /data"
 	EX: "$ mongod --dbpath=D:/Networking-app/EverestBack/data"
 	Hint: you can run "$ pwd" to get the absolute path to the root of your project
 	
 NOTE: The process will not end since you have initialized the db and are running it on a port and thats OKAY
 	  The console message should be: "... waiting for connections on port 27017"
 	
-4. Now open a new terminal at the root directory of your project again
-5. Run "$ node server.js"
+5. Now open a new terminal at the root directory of your project again
+6. Run "$ node server.js"
 
 You have now successfully ran a node server and connected a mongo client to the database:)
 
