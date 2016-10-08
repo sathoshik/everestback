@@ -20,10 +20,10 @@ http.listen(3000, function(){
   console.log('listening on *:3000');
 });
 
-//Express Route
-app.get('/', function(req, res){
-  //res.sendfile('index.html');
-});
+
+app.get('/',function(req,res){
+  res.send('Welcome to EverestBack');
+   });
 
 //Socket-io Connection
 io.on('connection', function(socket){
