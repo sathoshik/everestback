@@ -29,7 +29,7 @@ router.post('/addUser',function(req,res){
 
 //ZKH - GET 
 
-// ZKH - This route is unprotected *For Testing*
+//ZKH - This route is unprotected *For Testing*
 router.get('/api/token', function(req, res) {
   var token = jwt.sign({foo: 'bar'}, secret);
   res.send({token: token});
