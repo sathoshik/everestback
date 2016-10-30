@@ -1,5 +1,5 @@
-var userController =this;
-var mongoose= require('mongoose');
+var userController = this;
+var mongoose = require('mongoose');
 var fs = require('fs');
 var normalizedPath = require("path").join(__dirname, "../models");
 

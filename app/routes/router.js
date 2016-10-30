@@ -1,7 +1,7 @@
 var router = require('express').Router();
-var userController= require('../controllers/UserController');
-var eventController= require('../controllers/EventController');
-var nfController= require('../controllers/NewsfeedController');
+var userController = require('../controllers/UserController');
+var eventController = require('../controllers/EventController');
+var newsfeedController = require('../controllers/NewsfeedController');
 
 
 //ZKH - GET
