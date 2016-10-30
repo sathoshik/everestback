@@ -1,5 +1,5 @@
-var newsfeedController= this;
-var mongoose= require('mongoose');
+var newsfeedController = this;
+var mongoose = require('mongoose');
 var fs = require('fs');
 var normalizedPath = require("path").join(__dirname, "../models");
 
@@ -8,4 +8,4 @@ fs.readdirSync(normalizedPath).forEach(function(filename){
 	if(~filename.indexOf('.js')) require (normalizedPath+"\\"+filename)
 });
 
-module.exports=newsfeedController;
+module.exports = newsfeedController;

@@ -8,4 +8,4 @@ fs.readdirSync(normalizedPath).forEach(function(filename){
 	if(~filename.indexOf('.js')) require (normalizedPath+"\\"+filename)
 });
 
-module.exports=eventController;
+module.exports = eventController;

@@ -8,7 +8,7 @@ fs.readdirSync(normalizedPath).forEach(function(filename){
 	if(~filename.indexOf('.js')) require (normalizedPath+"\\"+filename)
 });
 
-var User= mongoose.model('User');
+var User = mongoose.model('User');
 
 userController.getAllUsers= function(req, res){
 	User.find({}, function (err, users){
@@ -33,4 +33,4 @@ userController.addUser=function(req,res){
 	res.send("Succesfully added a user");
 };
 
-module.exports= userController;
+module.exports = userController;

@@ -18,4 +18,4 @@ router.post('/addUser',function(req,res){
 	userController.addUser(req,res)
 });
 
-module.exports=router;
+module.exports = router;
