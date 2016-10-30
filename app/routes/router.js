@@ -9,7 +9,7 @@ var secret = require('../config/Secret')
 
 //ZKH - GET
 router.get('/',function(req,res){
-  res.send('Welcome to EverestBack');
+	res.send('Welcome to EverestBack');
 });
 
 router.get('/getAllUsers',function(req,res){
@@ -31,12 +31,12 @@ router.post('/addUser',function(req,res){
 
 //ZKH - This route is unprotected *For Testing*
 router.get('/api/token', function(req, res) {
-  var token = jwt.sign({foo: 'bar'}, secret);
-  res.send({token: token});
+	var token = jwt.sign({foo: 'bar'}, secret);
+	res.send({token: token});
 });
 
 router.get('/api/protected', function(req, res) {
-  res.send('Welcome to /api/protected route.');
+	res.send('Welcome to /api/protected route.');
 });
 
 //ZKH - ******END PROTECTED ROUTES******
