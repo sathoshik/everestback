@@ -10,7 +10,7 @@ var secret = require('../config/Secret')
 //ZKH - GET
 router.get('/',function(req,res){
   res.send('Welcome to EverestBack');
-   });
+});
 
 router.get('/getAllUsers',function(req,res){
 	userController.getAllUsers(req,res);
