@@ -4,11 +4,13 @@ var io = require('socket.io')(http);
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var router = require('./app/routes/router');
+var expressJWT = require('express-jwt');
+var secret = require('./app/config/Secret');
 
-//ZKH - Parse application/json
+//ZKH - Express Middleware
 app.use(bodyParser.json());
-
 app.use('/', router);
+app.use('/api', expressJWT({secret: secret}).unless({path: ['/api/token']}));
 
 //ZKH - Connection URL
 var url = 'mongodb://localhost:27017/EverestBack';
@@ -31,6 +33,7 @@ io.on('connection', function(socket){
   	  console.log('user disconnected');
   	});
 });
+
 	
 
 	
