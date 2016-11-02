@@ -23,7 +23,7 @@ mongoose.connect(url, function(err) {
 
 //ZKH - Connecting the Node server to port 3000
 http.listen(3000, function(){
-  console.log('listening on *:3000');
+	console.log('listening on *:3000');
 });
 
 //ZKH - Socket-io Connection
@@ -33,7 +33,6 @@ io.on('connection', function(socket){
   	  console.log('user disconnected');
   	});
 });
-
 	
 
 	

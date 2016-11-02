@@ -3,7 +3,8 @@ var userController = require('../controllers/UserController');
 var eventController = require('../controllers/EventController');
 var newsfeedController = require('../controllers/NewsfeedController');
 var jwt = require('jsonwebtoken');
-var secret = require('../config/Secret')
+var secret = require('../config/Secret');
+var imageUploader = require('../helpers/Tools').imageUploader();
 
 //ZKH - ******PUBLIC ROUTES******
 
@@ -19,6 +20,15 @@ router.get('/getAllUsers',function(req,res){
 //ZKH - POST
 router.post('/addUser',function(req,res){
 	userController.addUser(req,res)
+});
+
+router.post('/uploadImage',function(req,res){
+    imageUploader(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        res.end("File is uploaded");
+    });
 });
 
 //ZKH - ******END PUBLIC ROUTES******
