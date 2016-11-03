@@ -9,8 +9,8 @@ var secret = require('./app/config/Secret');
 
 //ZKH - Express Middleware
 app.use(bodyParser.json());
-app.use('/', router);
 app.use('/api', expressJWT({secret: secret}).unless({path: ['/api/token']}));
+app.use('/', router);
 
 //ZKH - Connection URL
 var url = 'mongodb://localhost:27017/EverestBack';
