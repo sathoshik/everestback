@@ -22,9 +22,36 @@ router.post('/addUser',function(req,res){
 	userController.addUser(req,res)
 });
 
+
+//SKU - This route is subject to change
+/**
+ * Create event api end point at {ip}:3000/createEvent
+ * @param {request} req, {response} res
+ * @paramObject { "EventName" : "",
+ *                "Description" : "",
+ *                "Location": "",
+ *                "StartTime": {DateTime},
+ *                "EndTime" : {DateTime},
+ *                "EventQuestions" : {  "Skills" : "" ,
+ *                                      "Interests" : "" }
+ *               }
+ * @return void or error
+ */
+router.post('/createEvent', function(req, res) {
+  eventController.createEvent(req, res)
+});
+
+
+//SKU - This route is probably useless.
+/**
+ * Upload Image api end point at {ip}:3000/uploadImage
+ * @param {request} req, {response} res
+ * @return void or error
+ */
 router.post('/uploadImage',function(req,res){
     imageUploader(req,res,function(err) {
         if(err) {
+          console.log(err)
             return res.end("Error uploading file.");
         }
         res.end("File is uploaded");
