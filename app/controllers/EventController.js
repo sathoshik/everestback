@@ -77,7 +77,48 @@ EventController.createEvent = (req, res) => {
     });
 
   });
-}
+};
+
+
+/**
+ * Get event object main information
+ * @param {request} req, {response} res
+ * @paramURL {Event Object Id} id
+ * @return event object or error message
+ */
+EventController.getEventDescription = (req, res) => {
+
+  //SKU - If the URL has the correct parameter, return object. Else return 404
+  if (req.query.id != null) {
+    var ObjectId = require('mongodb').ObjectID;
+
+    Event.find({_id: ObjectId(req.query.id)}, {
+      _id: 0,
+      EventImageURL: 1,
+      EventName: 1,
+      Description: 1,
+      Location: 1,
+      StartTime: 1,
+      EndTime: 1
+    }, function (err, event) {
+
+      if (err) {
+        console.log(err);
+        res.status(404);
+        res.send();
+      } else if (event == null) {
+        res.status(404);
+        res.send();
+      } else {
+        res.status(200);
+        res.send(event[0]);
+      }
+    });
+  } else {
+    res.status(404);
+    res.send();
+  }
+};
 
 
 /**

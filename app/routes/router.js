@@ -42,6 +42,16 @@ router.post('/createEvent', function(req, res) {
 });
 
 
+/**
+ * Retrieve event api end point at {ip}:3000/EventDescription?id={EventObjectID}
+ * @param {request} req, {response} res
+ * @return void or error
+ */
+router.get('/EventDescription', function(req, res) {
+  eventController.getEventDescription(req, res)
+});
+
+
 //SKU - This route is probably useless.
 /**
  * Upload Image api end point at {ip}:3000/uploadImage
