@@ -29,11 +29,11 @@ var EventController = this;
  */
 EventController.createEvent = (req, res) => {
 
-  imageUploader(req, res, function (err) {
+  imageUploader(req, res, (err) => {
 
     if (err) {
       res.status(500);
-      return res.end(err);
+      res.end(err);
     }
 
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
@@ -54,14 +54,14 @@ EventController.createEvent = (req, res) => {
       }
       else {
         //SKU - Add Event object to the events Collection
-        event.save(function (err) {
+        event.save( (err) => {
           if (err) {
             console.log(err)
             res.status(500)
             res.end(err.toString())
           } else {
             //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
-            newsFeed.save(function (err) {
+            newsFeed.save( (err) => {
               if (err) {
                 console.log(err)
                 res.status(500)
@@ -77,7 +77,48 @@ EventController.createEvent = (req, res) => {
     });
 
   });
-}
+};
+
+
+/**
+ * Get event object main information
+ * @param {request} req, {response} res
+ * @paramURL {Event Object Id} id
+ * @return event object or error message
+ */
+EventController.getEventDescription = (req, res) => {
+
+  //SKU - If the URL has the correct parameter, return object. Else return 404
+  if (req.query.id != null) {
+    var ObjectId = require('mongodb').ObjectID;
+
+    Event.find({_id: ObjectId(req.query.id)}, {
+      _id: 0,
+      EventImageURL: 1,
+      EventName: 1,
+      Description: 1,
+      Location: 1,
+      StartTime: 1,
+      EndTime: 1
+    }, (err, event) => {
+
+      if (err) {
+        console.log(err);
+        res.status(404);
+        res.send();
+      } else if (event.length < 1) {
+        res.status(404);
+        res.send();
+      } else {
+        res.status(200);
+        res.send(event[0]);
+      }
+    });
+  } else {
+    res.status(404);
+    res.send();
+  }
+};
 
 
 /**

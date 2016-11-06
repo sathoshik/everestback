@@ -37,8 +37,18 @@ router.post('/addUser',function(req,res){
  *               }
  * @return void or error
  */
-router.post('/createEvent', function(req, res) {
+router.post('/createEvent', (req, res) => {
   eventController.createEvent(req, res)
+});
+
+
+/**
+ * Retrieve event api end point at {ip}:3000/EventDescription?id={EventObjectID}
+ * @param {request} req, {response} res
+ * @return void or error
+ */
+router.get('/EventDescription', (req, res) => {
+  eventController.getEventDescription(req, res);
 });
 
 
