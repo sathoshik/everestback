@@ -46,6 +46,7 @@ UserController.createNewUser = (req, res) => {
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email != null && user.Password != null) {
 
+    user.OriginTimestamp = Date.now();
     //SKU - Add user object to the users Collection
     user.save((err) => {
       if (err) {
