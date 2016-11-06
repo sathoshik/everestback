@@ -40,7 +40,7 @@ var userSchema = new Schema ({
  * Upon initialization of User, Hash and salt password.
  *
  */
-userSchema.pre('save', (next) => {
+userSchema.pre('save', function (next) {
   var user = this;
 
   //SKU - Only hash the password if it has been modified/new

@@ -31,6 +31,20 @@ router.post('/createNewUser',function(req,res){
 });
 
 
+/**
+ * Add additional user information api end point at {ip}:3000/setUserProfileFields?id={user._id}
+ * @param {request} req, {response} res
+ * @paramObject { "FirstName" : "",
+ *                "LastName" : ""
+ *              }
+ * @paramObject {jpg} image [optional]
+ * @return status 200 or error
+ */
+router.post('/setUserProfileFields',function(req,res){
+  userController.addUserProfileFields(req,res)
+});
+
+
 //SKU - This route is subject to change
 /**
  * Create event api end point at {ip}:3000/createEvent
