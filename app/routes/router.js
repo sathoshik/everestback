@@ -48,7 +48,7 @@ router.post('/createEvent', function(req, res) {
  * @return void or error
  */
 router.get('/EventDescription', function(req, res) {
-  eventController.getEventDescription(req, res)
+  eventController.getEventDescription(req, res);
 });
 
 
