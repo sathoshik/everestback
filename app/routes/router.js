@@ -37,7 +37,7 @@ router.post('/addUser',function(req,res){
  *               }
  * @return void or error
  */
-router.post('/createEvent', function(req, res) {
+router.post('/createEvent', (req, res) => {
   eventController.createEvent(req, res)
 });
 
@@ -47,7 +47,7 @@ router.post('/createEvent', function(req, res) {
  * @param {request} req, {response} res
  * @return void or error
  */
-router.get('/EventDescription', function(req, res) {
+router.get('/EventDescription', (req, res) => {
   eventController.getEventDescription(req, res);
 });
 

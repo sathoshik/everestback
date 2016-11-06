@@ -29,11 +29,11 @@ var EventController = this;
  */
 EventController.createEvent = (req, res) => {
 
-  imageUploader(req, res, function (err) {
+  imageUploader(req, res, (err) => {
 
     if (err) {
       res.status(500);
-      return res.end(err);
+      res.end(err);
     }
 
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
@@ -54,14 +54,14 @@ EventController.createEvent = (req, res) => {
       }
       else {
         //SKU - Add Event object to the events Collection
-        event.save(function (err) {
+        event.save( (err) => {
           if (err) {
             console.log(err)
             res.status(500)
             res.end(err.toString())
           } else {
             //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
-            newsFeed.save(function (err) {
+            newsFeed.save( (err) => {
               if (err) {
                 console.log(err)
                 res.status(500)
@@ -100,13 +100,13 @@ EventController.getEventDescription = (req, res) => {
       Location: 1,
       StartTime: 1,
       EndTime: 1
-    }, function (err, event) {
+    }, (err, event) => {
 
       if (err) {
         console.log(err);
         res.status(404);
         res.send();
-      } else if (event == null) {
+      } else if (event.length < 1) {
         res.status(404);
         res.send();
       } else {
