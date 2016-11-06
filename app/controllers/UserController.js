@@ -41,17 +41,49 @@ UserController.getAllUsers = function (req, res) {
  */
 UserController.createNewUser = (req, res) => {
 
-  imageUploader(req, res, (err) => {
+  //SKU - Initialize User object with associated with mongoose model.
+  var user = new User(req.body);
+  //SKU - If the request does not have email && password, return 500 error.
+  if (user.Email != null && user.Password != null) {
 
-    if (err) {
-      res.status(500);
-      res.end(err);
-    }
+    //SKU - Add user object to the users Collection
+    user.save((err) => {
+      if (err) {
+        console.log(err);
+        res.status(500);
+        res.end(err.toString());
+      } else {
+        res.status(200);
+        res.send(user._id);
+      }
+    });
+  } else {
+    res.status(500);
+    res.send();
+  }
+};
 
-    //SKU - Initialize User object with associated with mongoose model.
-    var user = new User(req.body);
-    //SKU - If the request does not have email && password, return 500 error.
-    if (user.Email != null && user.Password != null) {
+
+/**
+ * Add additional fields to the User object already created in users collections
+ * @param {request} req, {response} res
+ * @return respond with 200 or error
+ */
+UserController.addUserProfileFields = (req, res) => {
+
+  //SKU - If the URL has the correct parameter, return object. Else return 404
+  if (req.query.id != null && req.query.id.length == 24) {
+
+    imageUploader(req, res, (err) => {
+
+      if (err) {
+        res.status(500);
+        res.end(err);
+      }
+
+      //SKU - Initialize User object with associated with mongoose model.
+      var user = new User(req.body);
+      //SKU - If the request does not have email && password, return 500 error.
 
       if (req.files.length > 0) {
         user.ProfileImageURL = req.files[0].path;
@@ -67,24 +99,36 @@ UserController.createNewUser = (req, res) => {
           res.end(err.toString());
         }
         else {
-          //SKU - Add user object to the users Collection
-          user.save((err) => {
+
+          var ObjectId = require('mongodb').ObjectID;
+
+          User.update({_id:ObjectId(req.query.id)}, {
+            FirstName: user.FirstName,
+            LastName: user.LastName,
+            ProfileImageURL: user.ProfileImageURL
+          }, (err, result) => {
+
             if (err) {
               console.log(err);
               res.status(500);
-              res.end(err.toString());
+              res.send();
+              //SKU - Saftey net is needed for guarding against submitting objects with no changes.
+            } else if (result.nModified < 1 || result.nModified == null) {
+              res.status(404);
+              res.send();
             } else {
               res.status(200);
-              res.send(user._id);
+              res.send();
             }
           });
         }
       });
-    } else {
-      res.status(500);
-      res.send();
-    }
-  });
+
+    });
+  } else{
+    res.status(404);
+    res.send()
+  }
 };
 
 
