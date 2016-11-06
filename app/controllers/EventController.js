@@ -42,42 +42,42 @@ EventController.createEvent = (req, res) => {
 
     //SKU - Reference the newsFeedID in the event object
     event.NewsfeedID = newsFeed._id;
-    if(req.files.length > 0 ) {
+    if (req.files.length > 0) {
       event.EventImageURL = req.files[0].path;
     }
 
     //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
-    try {
-      if (fs.statSync(__dirname + "/../../" + event.EventImageURL).isFile()) {
-        res.status(200);
+    fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
+      if (err) {
+        console.log(err);
+        res.end(err.toString());
       }
-    } catch (err) {
-      res.status(500);
-      res.end(err.toString());
-    }
+      else {
+        //SKU - Add Event object to the events Collection
+        event.save(function (err) {
+          if (err) {
+            console.log(err)
+            res.status(500)
+            res.end(err.toString())
+          } else {
+            //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
+            newsFeed.save(function (err) {
+              if (err) {
+                console.log(err)
+                res.status(500)
+                res.end(err.toString())
+              } else {
+                res.status(200)
+                res.send()
+              }
+            });
+          }
+        });
+      }
+    });
 
-    //SKU - Add Event object to the events Collection
-      event.save( function (err) {
-        if (err) {
-          console.log(err)
-          res.status(500)
-          res.end(err.toString())
-        } else {
-          //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
-          newsFeed.save( function (err) {
-            if (err) {
-              console.log(err)
-              res.status(500)
-              res.end(err.toString())
-            } else {
-              res.status(200)
-              res.send()
-            }
-          });
-        }
-      });
   });
-};
+}
 
 
 /**

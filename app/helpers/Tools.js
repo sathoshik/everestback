@@ -12,7 +12,7 @@ module.exports = {
 				callback(null,  '.' + SystemDirectory['uploadImages']);
 			},
 			filename: function (req, file, callback) {
-				callback(null, file.fieldname + '-' + Date.now() + '.' + path.extname(file.originalname));
+				callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
 			}
 		});
 

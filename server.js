@@ -1,6 +1,7 @@
-var System = require('./app/config/System')
+var System = require('./app/config/System');
 var secret = require('./app/config/Secret');
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var mongoose = require('mongoose');
@@ -15,6 +16,7 @@ System.directoryCheck()
 app.use(bodyParser.json());
 app.use('/api', expressJWT({secret: secret}).unless({path: ['/api/token']}));
 app.use('/', router);
+app.use('/public', express.static('public'));
 
 //ZKH - Connection URL
 var url = 'mongodb://localhost:27017/EverestBack';

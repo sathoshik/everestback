@@ -31,6 +31,7 @@ System.directoryCheck = () => {
       try {
         fs.mkdirSync(__dirname + "/../.." + SystemDirectory[directory]);
       } catch (err) {
+        console.log(err)
         throw err;
       }
     }
