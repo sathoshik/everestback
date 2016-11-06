@@ -126,9 +126,8 @@ UserController.addUserProfileFields = (req, res) => {
 
     });
   } else{
-
-
-
+    res.status(404);
+    res.send()
   }
 };
 
