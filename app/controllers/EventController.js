@@ -11,7 +11,20 @@ var imageUploader = require('../helpers/Tools').imageUploader();
 var fs = require('fs');
 var mongoose = require('mongoose');
 
+
+/**
+ * Event mongoose model initializer
+ * @constructor
+ * @param {Event}
+ */
 var Event = mongoose.model('Event');
+
+
+/**
+ * NewsFeed mongoose model initializer
+ * @constructor
+ * @param {NewsFeed}
+ */
 var NewsFeed = mongoose.model('NewsFeed');
 
 
@@ -44,6 +57,9 @@ EventController.createEvent = (req, res) => {
     event.NewsfeedID = newsFeed._id;
     if (req.files.length > 0) {
       event.EventImageURL = req.files[0].path;
+    } else {
+      //SKU - Reference default image.
+      event.EventImageURL = "/public/uploads/Everest1478401348492.jpg"
     }
 
     //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
@@ -89,7 +105,7 @@ EventController.createEvent = (req, res) => {
 EventController.getEventDescription = (req, res) => {
 
   //SKU - If the URL has the correct parameter, return object. Else return 404
-  if (req.query.id != null) {
+  if (req.query.id != null && req.query.id.length == 24) {
     var ObjectId = require('mongodb').ObjectID;
 
     Event.find({_id: ObjectId(req.query.id)}, {

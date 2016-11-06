@@ -17,9 +17,17 @@ router.get('/getAllUsers',function(req,res){
 	userController.getAllUsers(req,res);
 });
 
-//ZKH - POST
-router.post('/addUser',function(req,res){
-	userController.addUser(req,res)
+
+/**
+ * Sign up user api end point at {ip}:3000/createNewUser
+ * @param {request} req, {response} res
+ * @paramObject { "Email" : "",
+ *                "Password" : ""
+ *              }
+ * @return user._id or error
+ */
+router.post('/createNewUser',function(req,res){
+	userController.createNewUser(req,res)
 });
 
 
