@@ -1,21 +1,37 @@
+//  Everest_Back
+//
+//  Created by Sathoshi Kumarawadu on 2016-10-08.
+//  Copyright © 2016 Everest. All rights reserved.
+//
+
+
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 
-var eventsSchema= new Schema({
-	"Name" : {type: String, required: true},
-	"EventImageURL" : {type: String, required: true},
-	"Description" : {type: String, required: true},
-	"Location" : {type: String, required: true},
-	"StartTime" : Date,
-	"EndTime" : Date,
-	"AttendeeQRCodeURL" : {type: String, required: true},
-	"AdminQRCodeURL" : {type: String, required: true},
-	"EventQuestions" : {type: [String], required: true},
-	"AdminID" : {type: [Number], required: true},
-	"AtendeeID" : {type: [Number], required: true},
-	"NewsfeedID" : {type: Number, required: true}
-}); 
+/**
+ * Define Event Schema
+ *
+ */
+var eventSchema = new Schema ({
+	"EventName" : {type: String, required: true },
+	"EventImageURL" : {type: String, required: true },
+	"Description" : {type: String, required: false },
+	"Location" : {type: String, required: false },
+	"StartTime" : { type: Date, required: false },
+	"EndTime" : {type: Date, required: false },
+	"AttendeeQRCodeURL" : {type: String, required: false },
+	"AdminQRCodeURL" : {type: String, required: false },
+	"EventQuestions" : {type: {}, required: false },
+	"AdminID" : {type: [mongoose.Schema.Types.ObjectId], required: false },
+	"AttendeeID" : {type: [mongoose.Schema.Types.ObjectId], required: false },
+	"NewsfeedID" : {type: mongoose.Schema.Types.ObjectId, required: true }
+});
 
-mongoose.model('Event', eventsSchema);
 
+/**
+ * Add Event Model to global mongoose model object and evets collections
+ * @constructor
+ * @param {Schema} eventSchema, {string} Event
+ */
+mongoose.model('Event', eventSchema);
