@@ -14,10 +14,12 @@ var Schema = mongoose.Schema;
  *
  */
 var newsfeedSchema = new Schema({
-  "EventID": { type: Number, required: false},
-  "Status": { type: String, required: false},
-  "Timestamp": { type: Date, default: null, required: false},
-  "UserID": { type: Number, required: false}
+  "EventID": { type: mongoose.Schema.Types.ObjectId, required: false},
+  "Posts": [{
+    "UserID": { type: mongoose.Schema.Types.ObjectId, required: false},
+    "Timestamp": { type: Date, default: null, required: false} ,
+    "Post": { type: [String], required: false}
+  }]
 });
 
 

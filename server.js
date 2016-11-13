@@ -1,5 +1,6 @@
 var System = require('./app/config/System');
 var secret = require('./app/config/Secret');
+var socketLogic = require('./app/socket/socket.js');
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
@@ -31,12 +32,7 @@ mongoose.connect(url, function(err) {
 //ZKH - Connecting the Node server to port 3000
 http.listen(3000, function(){
 	console.log('listening on *:3000');
-});
-
-//ZKH - Socket-io Connection
-io.on('connection', function(socket){
-  	console.log('a user connected');
-  	socket.on('disconnect', function(){
-  	  console.log('user disconnected');
-  	});
+	socketLogic.setSocket(io, (msg) => {
+		console.log(msg);
+	});
 });

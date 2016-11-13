@@ -3,10 +3,10 @@
 //  Created by Sathoshi Kumarawadu on 2016-10-08.
 //  Copyright © 2016 Everest. All rights reserved.
 //
-
+"use strict";
 
 var mongoose = require('mongoose');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
 
 
@@ -16,7 +16,7 @@ var Schema = mongoose.Schema;
    needed to break a cryptosystem.
  * @benchmark 13 - 0.56773639917374 seconds
  */
-this.SALT_WORK_FACTOR =  13
+const SALT_WORK_FACTOR =  13;
 
 
 /**
@@ -41,19 +41,20 @@ var userSchema = new Schema ({
  *
  */
 userSchema.pre('save', function (next) {
-  var user = this;
-
+  let user = this;
+    console.log(user.Password, "yo");
   //SKU - Only hash the password if it has been modified/new
   if (!user.isModified('Password')) return next();
 
   //SKU - Generate a salt
-  bcrypt.genSalt(this.SALT_WORK_FACTOR, (err, salt) => {
+  bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
     if (err) return next(err);
 
     //SKU - Hash the password using our new salt
     bcrypt.hash(user.Password, salt, (err, hash) => {
       if (err) return next(err);
 
+    
       //SKU - Override the original password with the hashed one
       user.Password = hash;
       next();
