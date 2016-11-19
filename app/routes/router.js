@@ -5,16 +5,13 @@ var newsfeedController = require('../controllers/NewsfeedController');
 var jwt = require('jsonwebtoken');
 var secret = require('../config/Secret');
 var imageUploader = require('../helpers/Tools').imageUploader();
+var path = require('path');
 
 //ZKH - ******PUBLIC ROUTES******
 
 //ZKH - GET
 router.get('/',function(req,res){
 	res.send('Welcome to EverestBack');
-});
-
-router.get('/getAllUsers',function(req,res){
-	userController.getAllUsers(req,res);
 });
 
 
@@ -109,6 +106,40 @@ router.get('/api/protected', function(req, res) {
 });
 
 //ZKH - ******END PROTECTED ROUTES******
+
+//ZKH - ******TESTING ROUTES*********
+
+/**
+ * Returns all user objects within the DB
+ */
+router.get('/testing/getAllUsers',function(req,res){
+    userController.testingGetAllUsers(req,res);
+});
+
+/**
+ * Returns a test newsfeed HTML client
+ */
+router.get('/testing/newsfeed', (req, res) => {
+    let joinedPath = path.join(__dirname + '/../../test_clients/newsfeed_client/newsfeed_client.html');
+    let normalizedPath = path.normalize(joinedPath);
+    res.sendFile(normalizedPath);
+});
+
+/**
+ * Returns all newsfeed objects within the DB
+ */
+router.get('/testing/getAllNewsfeeds',(req, res) => {
+    newsfeedController.testingGetAllNewsfeeds(req, res);
+});
+
+/**
+ * Create a new event object
+ */
+router.post('/testing/createNewEvent', (req, res) => {
+   eventController.testingCreateEvent(req,res);
+});
+
+//ZKH - ******END TESTING ROUTES******
 
 
 module.exports = router;
