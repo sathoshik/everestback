@@ -1,6 +1,4 @@
 //  Everest_Back
-//
-//  Created by Sathoshi Kumarawadu on 2016-11-06.
 //  Copyright © 2016 Everest. All rights reserved.
 //
 
@@ -127,6 +125,12 @@ UserController.addUserProfileFields = (req, res) => {
 
 //ZKH - ****TESTING CONTROLLERS****
 
+
+/**
+ * Get all users in the platform
+ * @param {request} req, {response} res
+ * @return respond with an json hash of users
+ */
 UserController.testingGetAllUsers = function (req, res) {
   User.find({}, function (err, users) {
     res.send(users);

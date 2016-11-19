@@ -1,8 +1,7 @@
 //  Everest_Back
-//
-//  Created by Sathoshi Kumarawadu on 2016-10-08.
 //  Copyright © 2016 Everest. All rights reserved.
 //
+
 require('../models/Event');
 require('../models/NewsFeed');
 
@@ -139,14 +138,11 @@ EventController.getEventDescription = (req, res) => {
   }
 };
 
+
 /**
  * Checks if the user is part of an event
- *
- * @args
- * int event_id = Event's ID
- * int user_id = User's ID
- * string restriction = null or "admin" or "attendee"
- * bool returnEventObject
+ * @param {int eventID} event_id, {int userID} user_id, {admin/attendee/null} restriction
+ * @return  event object or error message
  */
 EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  returnEventObject , callback) => {
 
@@ -194,13 +190,12 @@ EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  ret
 
 //ZKH - ****TESTING CONTROLLERS****
 
+
 /**
  * Create a testing event & newsfeed object without image upload
- * @return
- * {
- * event:{}
- * newsfeed:{}
- * }
+ * @return {  "event": {},
+ *            "newsfeed": {}
+ *          }
  */
 EventController.testingCreateEvent = (req, res) => {
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
@@ -236,6 +231,8 @@ EventController.testingCreateEvent = (req, res) => {
         });
 };
 //ZKH - ****END TESTING CONTROLLERS****
+
+
 /**
  * Add EventController to global module object
  * @constructor
