@@ -3,8 +3,6 @@
 //  Created by Sathoshi Kumarawadu on 2016-10-08.
 //  Copyright © 2016 Everest. All rights reserved.
 //
-"use strict";
-
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
@@ -54,7 +52,6 @@ userSchema.pre('save', function (next) {
     bcrypt.hash(user.Password, salt, (err, hash) => {
       if (err) return next(err);
 
-    
       //SKU - Override the original password with the hashed one
       user.Password = hash;
       next();

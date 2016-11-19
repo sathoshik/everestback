@@ -1,20 +1,20 @@
-"use strict";
-var io;
 var exports = module.exports = {};
 var eventController = require('../controllers/EventController');
 var newsfeedController = require('../controllers/NewsfeedController');
 
+//ZKH - I/O stream for client-side Socket instances
+var io;
 
-
-//ZKH - Invoked upon successfully initializing the server-side socket
+/**
+ * Invoked upon successfully initializing the server-side socket
+ */
 var successfullySetSocket = () => {
 
     //ZKH - Socket-io Connection
     io.on('connection', function(socket){
         console.log('a user connected');
-        /**
-         * The unique identifier for the room will be the same as NewsfeedID
-         */
+
+        //ZKH -The unique identifier for the room will be the same as NewsfeedID
         //ZKH - Subscribing to a Newsfeed Room
         socket.on('newsfeed subscribe', function(data, callback) {
             eventController.checkIfUserIsPartOfEvent(data.event_id, data.user_id, null, true, (userIsPartOfEvent, event) => {

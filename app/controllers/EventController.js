@@ -3,7 +3,6 @@
 //  Created by Sathoshi Kumarawadu on 2016-10-08.
 //  Copyright © 2016 Everest. All rights reserved.
 //
-"use strict";
 require('../models/Event');
 require('../models/NewsFeed');
 
@@ -140,7 +139,7 @@ EventController.getEventDescription = (req, res) => {
   }
 };
 
-/**Author: Zain Khan
+/**
  * Checks if the user is part of an event
  *
  * @args
@@ -149,10 +148,8 @@ EventController.getEventDescription = (req, res) => {
  * string restriction = null or "admin" or "attendee"
  * bool returnEventObject
  */
-
 EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  returnEventObject , callback) => {
-  
-    //event_id = parseInt(event_id);
+
     //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
     Event.findOne({_id: event_id}, {_id: 0, AdminID: 1,  AttendeeID: 1, NewsfeedID: 1}, (err, event) =>{
         
@@ -168,68 +165,75 @@ EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  ret
         var userIsPartOfEvent = false;
 
         if(restriction == "admin" || restriction == null){
-          event.AdminID.map((adminID) => {
-            if(adminID == user_id){
-            userIsPartOfEvent = true;
-            }
-          });
+            event.AdminID.map((adminID) => {
+              if(adminID == user_id){
+                userIsPartOfEvent = true;
+                }
+            });
         }
 
-
         if(restriction == "attendee" || restriction == null){
-          if(!userIsPartOfEvent){
-            event.AttendeeID.map((attendeeID) => {
-              if(attendeeID == user_id){
-              userIsPartOfEvent = true;
-              }
-            });
-          }
+            if(!userIsPartOfEvent){
+                event.AttendeeID.map((attendeeID) => {
+                    if(attendeeID == user_id){
+                    userIsPartOfEvent = true;
+                    }
+                });
+            }
         }
 
         if(returnEventObject){
-          callback(userIsPartOfEvent, event);
+            callback(userIsPartOfEvent, event);
         }
         else{
-          callback(userIsPartOfEvent);
+            callback(userIsPartOfEvent);
         }
 
-
-      });
+    });
 };
 
 //ZKH - ****TESTING CONTROLLERS****
 
-//ZKH - Create a testing event object without image upload
+/**
+ * Create a testing event & newsfeed object without image upload
+ * @return
+ * {
+ * event:{}
+ * newsfeed:{}
+ * }
+ */
 EventController.testingCreateEvent = (req, res) => {
-  //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
-  var event = new Event(req.body);
-  var newsFeed = new NewsFeed();
+    //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
+    var event = new Event(req.body);
+    var newsFeed = new NewsFeed();
 
-  //SKU - Reference the newsFeedID in the event object
-  event.NewsfeedID = newsFeed._id;
+    //ZKH - Reference the newsFeedID in the event object
+    event.NewsfeedID = newsFeed._id;
 
-  //ZKH - Reference the EventID in the newsFeed object
-  newsFeed.EventID = event._id;
+    //ZKH - Reference the EventID in the newsFeed object
+    newsFeed.EventID = event._id;
 
-  event.save( (err) => {
-    if (err) {
-      console.log(err)
-      res.status(500)
-      res.end(err.toString())
-    } else {
-      //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
-      newsFeed.save( (err) => {
-        if (err) {
-          console.log(err)
-          res.status(500)
-          res.end(err.toString())
-        } else {
-          res.status(200)
-        res.send({event: event, newsfeed: newsFeed})
-        }
-      });
-    }
-  });
+        event.save( (err) => {
+            if (err) {
+                console.log(err)
+                res.status(500)
+                res.end(err.toString())
+            }
+            else {
+                //ZKH - If there are no errors, add newsFeed object to the newsFeeds Collection
+                newsFeed.save( (err) => {
+                    if (err) {
+                        console.log(err)
+                        res.status(500)
+                        res.end(err.toString())
+                    }
+                    else {
+                        res.status(200)
+                        res.send({event: event, newsfeed: newsFeed})
+                    }
+                });
+            }
+        });
 };
 //ZKH - ****END TESTING CONTROLLERS****
 /**
