@@ -9,7 +9,7 @@
   "author": "Everest",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^0.8.7",
+    "bcryptjs": "^2.3.0",
     "body-parser": "^1.15.2",
     "express": "^4.10.2",
     "express-jwt": "^5.1.0",

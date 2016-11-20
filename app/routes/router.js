@@ -5,16 +5,13 @@ var newsfeedController = require('../controllers/NewsfeedController');
 var jwt = require('jsonwebtoken');
 var secret = require('../config/Secret');
 var imageUploader = require('../helpers/Tools').imageUploader();
+var path = require('path');
 
 //ZKH - ******PUBLIC ROUTES******
 
 //ZKH - GET
 router.get('/',function(req,res){
 	res.send('Welcome to EverestBack');
-});
-
-router.get('/getAllUsers',function(req,res){
-	userController.getAllUsers(req,res);
 });
 
 
@@ -96,7 +93,7 @@ router.post('/uploadImage',function(req,res){
 
 //ZKH - ******PROTECTED ROUTES******
 
-//ZKH - GET 
+//ZKH - GET
 
 //ZKH - This route is unprotected *For Testing*
 router.get('/api/token', function(req, res) {
@@ -110,5 +107,63 @@ router.get('/api/protected', function(req, res) {
 
 //ZKH - ******END PROTECTED ROUTES******
 
+//ZKH - ******TESTING ROUTES*********
 
+
+/**
+ * Get all users api end point at {ip}:3000/testing/getAllUsers
+ * @param {request} req, {response} res
+ * @return Json hash of users or error
+ */
+router.get('/testing/getAllUsers',function(req,res){
+    userController.testingGetAllUsers(req,res);
+});
+
+
+/**
+ * Newsfeed testing page end point at {ip}:3000/testing/newsfeed
+ * @param {request} req, {response} res
+ * @return Web page of platform to test newsfeed
+ */
+router.get('/testing/newsfeed', (req, res) => {
+    let joinedPath = path.join(__dirname + '/../../test_clients/newsfeed_client/newsfeed_client.html');
+    let normalizedPath = path.normalize(joinedPath);
+    res.sendFile(normalizedPath);
+});
+
+
+/**
+ * Get all newsfeed api end point at {ip}:3000/testing/getAllNewsfeeds
+ * @param {request} req, {response} res
+ * @return Json hash of newsfeed or error
+ */
+router.get('/testing/getAllNewsfeeds',(req, res) => {
+    newsfeedController.testingGetAllNewsfeeds(req, res);
+});
+
+
+/**
+ * Create new event api end point at {ip}:3000/testing/createNewEvent
+ * @param {request} req, {response} res
+ * @paramObject { "EventName" : "",
+ *                "Description" : "",
+ *                "Location": "",
+ *                "StartTime": {DateTime},
+ *                "EndTime" : {DateTime},
+ *                "EventQuestions" : {  "Skills" : "" ,
+ *                                      "Interests" : "" }
+ *               }
+ * @return Json hash of newsfeed or error
+ */
+router.post('/testing/createNewEvent', (req, res) => {
+  eventController.testingCreateEvent(req,res);
+});
+
+//ZKH - ******END TESTING ROUTES******
+
+
+/**
+ * Add Router to global module object
+ * @constructor
+ */
 module.exports = router;
