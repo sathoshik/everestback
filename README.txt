@@ -1,5 +1,5 @@
 Instructions on Initializing the EverestBack repo:
-1. cd into the current current directory in terminal
+1. cd into the current directory in terminal
 2. Run "$ npm install"
 3. Run "$ mkdir data"
 4. Run "$ mongod --dbpath=THE ABSOLUTE PATH TO YOUR PROJECT ENDING WITH /data"
