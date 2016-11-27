@@ -51,8 +51,8 @@ router.post('/setUserProfileFields',function(req,res){
  *                "Location": "",
  *                "StartTime": {DateTime},
  *                "EndTime" : {DateTime},
- *                "EventQuestions" : {  "Skills" : "" ,
- *                                      "Interests" : "" }
+ *                "EventQuestions" : [],
+ *                "UserId" : "_id"
  *               }
  * @return void or error
  */
