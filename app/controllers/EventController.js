@@ -50,10 +50,10 @@ EventController.createEvent = (req, res) => {
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
     var event = new Event(req.body);
     var newsFeed = new NewsFeed();
+    event.AdminID.push(req.body.UserId);
 
     //SKU - Reference the newsFeedID in the event object
     event.NewsfeedID = newsFeed._id;
-
     //ZKH - Reference the EventID in the newsFeed object
     newsFeed.EventID = event._id;
 
@@ -76,14 +76,14 @@ EventController.createEvent = (req, res) => {
           if (err) {
             console.log(err)
             res.status(500)
-            res.end(err.toString())
+            res.send({'error' : err.toString()})
           } else {
             //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
             newsFeed.save( (err) => {
               if (err) {
                 console.log(err)
                 res.status(500)
-                res.end(err.toString())
+                res.send({'error' : err.toString()})
               } else {
                 res.status(200)
                 res.send()
