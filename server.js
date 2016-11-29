@@ -13,7 +13,12 @@ var expressJWT = require('express-jwt');
 //SKU - Upon initializing, make sure all necessary folder structures exists.
 System.directoryCheck()
 
-//ZKH - Express Middleware
+//SKU - Cross domain issue solution for Everest Web
+app.use( (req, res, next)  =>{
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	next();
+});
 app.use(bodyParser.json());
 app.use('/api', expressJWT({secret: secret}).unless({path: ['/api/token']}));
 app.use('/', router);
