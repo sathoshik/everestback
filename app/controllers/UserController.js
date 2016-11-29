@@ -42,15 +42,15 @@ UserController.createNewUser = (req, res) => {
     user.save((err) => {
       if (err) {
         console.log(err);
-        res.status(500);
-        res.end(err.toString());
+        res.status(400);
+        res.send({'error' : err.toString()});
       } else {
         res.status(200);
-        res.send(user._id);
+        res.send({'_id' : user._id});
       }
     });
   } else {
-    res.status(500);
+    res.status(400);
     res.send();
   }
 };
@@ -110,7 +110,8 @@ UserController.addUserProfileFields = (req, res) => {
               res.send();
             } else {
               res.status(200);
-              res.send();
+              console.log(user.ProfileImageURL)
+              res.send({'ProfileImageURL' : user.ProfileImageURL});
             }
           });
         }

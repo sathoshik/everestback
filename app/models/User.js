@@ -40,7 +40,6 @@ var userSchema = new Schema ({
  */
 userSchema.pre('save', function (next) {
   let user = this;
-    console.log(user.Password, "yo");
   //SKU - Only hash the password if it has been modified/new
   if (!user.isModified('Password')) return next();
 
