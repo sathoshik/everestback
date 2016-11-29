@@ -86,7 +86,7 @@ EventController.createEvent = (req, res) => {
                 res.send({'error' : err.toString()})
               } else {
                 res.status(200)
-                res.send()
+                res.send({'valid' : 'true'})
               }
             });
           }
