@@ -27,7 +27,8 @@ var userSchema = new Schema ({
 	"FirstName" : {type: String, default: null, required: false },
 	"LastName" : {type: String, default: null, required: false },
 	"ProfileImageURL" : {type: String, default: null, required: false },
-	"LastLoginTimestamp" : {type: Date, default:null, required: false },
+	"LatestLoginTimestamp" : {type: Date, default:null, required: false },
+  "LatestLogoutTimestamp" : {type: Date, default:null, required: false },
 	"OriginTimestamp" : {type: Date, default:null, required: false },
 	"AttendeeEventID" : {type: [Number], default:null, required: false },
 	"AdminEventID" :{type: [Number], default:null, required: false }

@@ -45,7 +45,7 @@ UserController.signInUser = (req, res) => {
             res.status(400);
             res.send({'error' : 'The Email or Password entered is incorrect'});
           } else {
-            user.LastLoginTimestamp = Date.now();
+            user.LatestLoginTimestamp = Date.now();
             user.save((err) => {
               if (err) {
                 console.log(err);
