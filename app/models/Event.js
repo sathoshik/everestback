@@ -22,7 +22,7 @@ var eventSchema = new Schema ({
 	"EndTime" : {type: Date, required: false },
 	"AttendeeQRCodeURL" : {type: String, required: false },
 	"AdminQRCodeURL" : {type: String, required: false },
-	"EventQuestions" : {type: {}, required: false },
+	"EventQuestions" : {type: [], required: false },
 	"AdminID" : {type: [mongoose.Schema.Types.ObjectId], required: false },
 	"AttendeeID" : {type: [mongoose.Schema.Types.ObjectId], required: false },
 	"NewsfeedID" : {type: mongoose.Schema.Types.ObjectId, required: true }
