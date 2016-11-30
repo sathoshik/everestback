@@ -16,6 +16,19 @@ router.get('/',function(req,res){
 
 
 /**
+ * Sign in user api end point at {ip}:3000/signInUser
+ * @param {request} req, {response} res
+ * @paramObject { "Email" : "",
+ *                "Password" : ""
+ *              }
+ * @return user._id or error
+ */
+router.post('/signInUser', (req, res) => {
+  userController.signInUser(req, res)
+})
+
+
+/**
  * Sign up user api end point at {ip}:3000/createNewUser
  * @param {request} req, {response} res
  * @paramObject { "Email" : "",
@@ -23,8 +36,8 @@ router.get('/',function(req,res){
  *              }
  * @return user._id or error
  */
-router.post('/createNewUser',function(req,res){
-	userController.createNewUser(req,res)
+router.post('/createNewUser', (req, res) => {
+	userController.createNewUser(req, res)
 });
 
 
@@ -37,8 +50,8 @@ router.post('/createNewUser',function(req,res){
  * @paramObject {jpg} image [optional]
  * @return status 200 or error
  */
-router.post('/setUserProfileFields',function(req,res){
-  userController.addUserProfileFields(req,res)
+router.post('/setUserProfileFields', (req, res) => {
+  userController.addUserProfileFields(req, res)
 });
 
 

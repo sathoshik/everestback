@@ -64,11 +64,11 @@ userSchema.pre('save', function (next) {
  * @param {string} requestPassword, {function} callBack
  * @return callBack or isMatch = true/false
  */
-userSchema.methods.comparePassword = (requestPassword, callBack) => {
-  bcrypt.compare(requestPassword, this.password, (err, isMatch) => {
-    if (err) return callBack(err);
-    callBack(null, isMatch);
-  });
+userSchema.methods.comparePassword = function(requestPassword, callBack) {
+    bcrypt.compare(requestPassword, this.Password, (err, isMatch) => {
+      if (err) return callBack(err);
+      callBack(null, isMatch);
+    });
 };
 
 

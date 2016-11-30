@@ -24,6 +24,39 @@ var User = mongoose.model('User');
 var UserController = this;
 
 
+/**
+ * Check whether the given email address and password are valid. If valid, return user_id
+ * @param {request} req, {response} res
+ * @return respond with user._id or error
+ */
+UserController.signInUser = (req, res) => {
+  if (req.body.Email !== null && req.body.Email !== '' &&
+      req.body.Password !== null && req.body.Password !== '') {
+
+    User.findOne({Email: req.body.Email}, (err, user) => {
+      if (err || !user) {
+        console.log(err);
+        res.status(400);
+        res.send({'error' : 'The Email or Password entered is incorrect'});
+      } else {
+        user.comparePassword(req.body.Password, function (err, isMatch) {
+          if (err || !isMatch) {
+            if (err) console.log(err)
+            res.status(400);
+            res.send({'error' : 'The Email or Password entered is incorrect'});
+          } else {
+            res.status(200);
+            res.send({'_id' : user._id});
+          }
+        });
+      }
+    });
+  } else {
+    res.status(400);
+    res.send({'error' : 'The Email or Password entered is incorrect'});
+  }
+};
+
 //SKU - Should we safe guard against extra parameters that could be sent?
 /**
  * Add User object to users collections
@@ -31,12 +64,10 @@ var UserController = this;
  * @return respond with user._id or error
  */
 UserController.createNewUser = (req, res) => {
-  console.log(req.body);
   //SKU - Initialize User object with associated with mongoose model.
   var user = new User(req.body);
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email != null && user.Password != null) {
-    console.log(user);
     user.OriginTimestamp = Date.now();
     //SKU - Add user object to the users Collection
     user.save((err) => {
