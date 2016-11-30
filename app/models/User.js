@@ -27,7 +27,8 @@ var userSchema = new Schema ({
 	"FirstName" : {type: String, default: null, required: false },
 	"LastName" : {type: String, default: null, required: false },
 	"ProfileImageURL" : {type: String, default: null, required: false },
-	"LastLoginTimestamp" : {type: Date, default:null, required: false },
+	"LatestLoginTimestamp" : {type: Date, default:null, required: false },
+  "LatestLogoutTimestamp" : {type: Date, default:null, required: false },
 	"OriginTimestamp" : {type: Date, default:null, required: false },
 	"AttendeeEventID" : {type: [Number], default:null, required: false },
 	"AdminEventID" :{type: [Number], default:null, required: false }
@@ -64,11 +65,11 @@ userSchema.pre('save', function (next) {
  * @param {string} requestPassword, {function} callBack
  * @return callBack or isMatch = true/false
  */
-userSchema.methods.comparePassword = (requestPassword, callBack) => {
-  bcrypt.compare(requestPassword, this.password, (err, isMatch) => {
-    if (err) return callBack(err);
-    callBack(null, isMatch);
-  });
+userSchema.methods.comparePassword = function(requestPassword, callBack) {
+    bcrypt.compare(requestPassword, this.Password, (err, isMatch) => {
+      if (err) return callBack(err);
+      callBack(null, isMatch);
+    });
 };
 
 
