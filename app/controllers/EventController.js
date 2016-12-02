@@ -8,7 +8,8 @@ require('../models/NewsFeed');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var fs = require('fs');
 var mongoose = require('mongoose');
-
+var util = require('../helpers/Util');
+var env = require('../config/constants/Environment');
 
 /**
  * Event mongoose model initializer
@@ -34,6 +35,14 @@ var EventController = this;
 
 
 /**
+ * QR Code Api Initializer
+ * @constructor
+ * http://goqr.me/api/
+ */
+var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=";
+
+
+/**
  * Create event object along with header image upload
  * @param {request} req, {response} res
  * @return void or error
@@ -54,6 +63,11 @@ EventController.createEvent = (req, res) => {
 
     //SKU - Reference the newsFeedID in the event object
     event.NewsfeedID = newsFeed._id;
+    //SKU - Generate two 16 bit tokens for attendee and admin
+    event.AttendeeKey = util.generateToken();
+    event.AdminKey = util.generateToken();
+    event.AdminQRCodeURL = QRCodeAPi + env.Host + '/Event/' + event._id + '?key=' +  event.AdminKey;
+    event.AttendeeQRCodeURL = QRCodeAPi + env.Host + '/Event/' + event._id + '?key=' +  event.AttendeeKey;
     //ZKH - Reference the EventID in the newsFeed object
     newsFeed.EventID = event._id;
 
@@ -61,7 +75,7 @@ EventController.createEvent = (req, res) => {
       event.EventImageURL = req.files[0].path;
     } else {
       //SKU - Reference default image.
-      event.EventImageURL = "/public/uploads/Everest1478401348492.jpg"
+      event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
     }
 
     //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
@@ -74,19 +88,19 @@ EventController.createEvent = (req, res) => {
         //SKU - Add Event object to the events Collection
         event.save( (err) => {
           if (err) {
-            console.log(err)
-            res.status(500)
-            res.send({'error' : err.toString()})
+            console.log(err);
+            res.status(500);
+            res.send({'error' : err.toString()});
           } else {
             //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
             newsFeed.save( (err) => {
               if (err) {
-                console.log(err)
-                res.status(500)
-                res.send({'error' : err.toString()})
+                console.log(err);
+                res.status(500);
+                res.send({'error' : err.toString()});
               } else {
-                res.status(200)
-                res.send({'valid' : 'true'})
+                res.status(200);
+                res.send({'valid' : 'true'});
               }
             });
           }
@@ -99,42 +113,66 @@ EventController.createEvent = (req, res) => {
 
 
 /**
- * Get event object main information
+ * Get event information with admin status
  * @param {request} req, {response} res
- * @paramURL {Event Object Id} id
+ * @paramURL {Admin/Attendee Key} key, {Event Object ID} event
  * @return event object or error message
  */
 EventController.getEventDescription = (req, res) => {
 
   //SKU - If the URL has the correct parameter, return object. Else return 404
-  if (req.query.id != null && req.query.id.length == 24) {
+  if (req.query.key !== null && req.params.event !== null && req.params.event.length == 24) {
     var ObjectId = require('mongodb').ObjectID;
 
-    Event.find({_id: ObjectId(req.query.id)}, {
+    Event.findOne({_id: ObjectId(req.params.event)}, {
       _id: 0,
       EventImageURL: 1,
       EventName: 1,
       Description: 1,
       Location: 1,
       StartTime: 1,
-      EndTime: 1
+      EndTime: 1,
+      AdminKey: 1,
+      AttendeeKey: 1,
     }, (err, event) => {
+      debugger;
 
       if (err) {
         console.log(err);
         res.status(404);
-        res.send();
-      } else if (event.length < 1) {
+        res.send({'error' : err.toString()});
+      } else if (!event) {
         res.status(404);
-        res.send();
+        res.send({'error' : 'The event you are looking for does not exist'});
+      } else if (event._doc.AdminKey.length < 1 ||
+        event._doc.AttendeeKey.length < 1){
+        res.status(400);
+        res.send({'error' : 'Oops.. You have invalid permissions to view this event'});
       } else {
-        res.status(200);
-        res.send(event[0]);
+        //SKU - Based on the given key, identify admin vs attendee
+        let valid = false;
+        if (event.AdminKey == req.query.key) {
+          event._doc.Admin = true;
+          valid = true;
+        } else if  (event.AttendeeKey == req.query.key) {
+          event._doc.Admin = false;
+          valid = true;
+        }
+        if (valid) {
+          //SKU - Force remove the Admin key from the event object before sending response
+          delete event._doc.AdminKey;
+          delete event._doc.AttendeeKey;
+          res.status(200);
+          res.send(event);
+        } else {
+          res.status(400);
+          res.send({'error' : 'Oops.. You have invalid permissions to view this event'});
+        }
       }
     });
   } else {
     res.status(404);
-    res.send();
+    res.send({'error' : 'The event you are looking for does not exist'});
   }
 };
 
@@ -146,46 +184,46 @@ EventController.getEventDescription = (req, res) => {
  */
 EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  returnEventObject , callback) => {
 
-    //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
-    Event.findOne({_id: event_id}, {_id: 0, AdminID: 1,  AttendeeID: 1, NewsfeedID: 1}, (err, event) =>{
-        
-        if (err) {
-          console.log(err);
-          return;
-        }
-        else if(event.length < 1){
-          console.log("No event found");
-          return;
-        }
+  //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
+  Event.findOne({_id: event_id}, {_id: 0, AdminID: 1,  AttendeeID: 1, NewsfeedID: 1}, (err, event) =>{
 
-        var userIsPartOfEvent = false;
+    if (err) {
+      console.log(err);
+      return;
+    }
+    else if(event.length < 1){
+      console.log("No event found");
+      return;
+    }
 
-        if(restriction == "admin" || restriction == null){
-            event.AdminID.map((adminID) => {
-              if(adminID == user_id){
-                userIsPartOfEvent = true;
-                }
-            });
-        }
+    var userIsPartOfEvent = false;
 
-        if(restriction == "attendee" || restriction == null){
-            if(!userIsPartOfEvent){
-                event.AttendeeID.map((attendeeID) => {
-                    if(attendeeID == user_id){
-                    userIsPartOfEvent = true;
-                    }
-                });
-            }
+    if(restriction == "admin" || restriction == null){
+      event.AdminID.map((adminID) => {
+        if(adminID == user_id){
+          userIsPartOfEvent = true;
         }
+      });
+    }
 
-        if(returnEventObject){
-            callback(userIsPartOfEvent, event);
-        }
-        else{
-            callback(userIsPartOfEvent);
-        }
+    if(restriction == "attendee" || restriction == null){
+      if(!userIsPartOfEvent){
+        event.AttendeeID.map((attendeeID) => {
+          if(attendeeID == user_id){
+            userIsPartOfEvent = true;
+          }
+        });
+      }
+    }
 
-    });
+    if(returnEventObject){
+      callback(userIsPartOfEvent, event);
+    }
+    else{
+      callback(userIsPartOfEvent);
+    }
+
+  });
 };
 
 //ZKH - ****TESTING CONTROLLERS****
@@ -198,37 +236,37 @@ EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  ret
  *          }
  */
 EventController.testingCreateEvent = (req, res) => {
-    //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
-    var event = new Event(req.body);
-    var newsFeed = new NewsFeed();
+  //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
+  var event = new Event(req.body);
+  var newsFeed = new NewsFeed();
 
-    //ZKH - Reference the newsFeedID in the event object
-    event.NewsfeedID = newsFeed._id;
+  //ZKH - Reference the newsFeedID in the event object
+  event.NewsfeedID = newsFeed._id;
 
-    //ZKH - Reference the EventID in the newsFeed object
-    newsFeed.EventID = event._id;
+  //ZKH - Reference the EventID in the newsFeed object
+  newsFeed.EventID = event._id;
 
-        event.save( (err) => {
-            if (err) {
-                console.log(err)
-                res.status(500)
-                res.end(err.toString())
-            }
-            else {
-                //ZKH - If there are no errors, add newsFeed object to the newsFeeds Collection
-                newsFeed.save( (err) => {
-                    if (err) {
-                        console.log(err)
-                        res.status(500)
-                        res.end(err.toString())
-                    }
-                    else {
-                        res.status(200)
-                        res.send({event: event, newsfeed: newsFeed})
-                    }
-                });
-            }
-        });
+  event.save( (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500);
+      res.end({'error' : err.toString()});
+    }
+    else {
+      //ZKH - If there are no errors, add newsFeed object to the newsFeeds Collection
+      newsFeed.save( (err) => {
+        if (err) {
+          console.log(err);
+          res.status(500);
+          res.end({'error' : err.toString()});
+        }
+        else {
+          res.status(200);
+          res.send({event: event, newsfeed: newsFeed});
+        }
+      });
+    }
+  });
 };
 //ZKH - ****END TESTING CONTROLLERS****
 

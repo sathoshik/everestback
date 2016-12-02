@@ -75,11 +75,11 @@ router.post('/createEvent', (req, res) => {
 
 
 /**
- * Retrieve event api end point at {ip}:3000/EventDescription?id={EventObjectID}
+ * Retrieve admin event api end point at {ip}:3000/Event/{EventObjectID}?key={AdminKey}
  * @param {request} req, {response} res
  * @return void or error
  */
-router.get('/EventDescription', (req, res) => {
+router.get('/Event/:event', (req, res) => {
   eventController.getEventDescription(req, res);
 });
 
