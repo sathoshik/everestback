@@ -124,7 +124,7 @@ EventController.getEventDescription = (req, res) => {
   if (req.query.key !== null && req.params.event !== null && req.params.event.length == 24) {
     var ObjectId = require('mongodb').ObjectID;
 
-    Event.find({_id: ObjectId(req.params.event)}, {
+    Event.findOne({_id: ObjectId(req.params.event)}, {
       _id: 0,
       EventImageURL: 1,
       EventName: 1,
@@ -135,34 +135,35 @@ EventController.getEventDescription = (req, res) => {
       AdminKey: 1,
       AttendeeKey: 1,
     }, (err, event) => {
+      debugger;
 
       if (err) {
         console.log(err);
         res.status(404);
         res.send({'error' : err.toString()});
-      } else if (event.length < 1) {
+      } else if (!event) {
         res.status(404);
         res.send({'error' : 'The event you are looking for does not exist'});
-      } else if (event[0]._doc.AdminKey.length < 1 ||
-        event[0]._doc.AttendeeKey.length < 1){
+      } else if (event._doc.AdminKey.length < 1 ||
+        event._doc.AttendeeKey.length < 1){
         res.status(400);
         res.send({'error' : 'Oops.. You have invalid permissions to view this event'});
       } else {
         //SKU - Based on the given key, identify admin vs attendee
         let valid = false;
-        if (event[0].AdminKey == req.query.key) {
-          event[0]._doc.Admin = true;
+        if (event.AdminKey == req.query.key) {
+          event._doc.Admin = true;
           valid = true;
-        } else if  (event[0].AttendeeKey == req.query.key) {
-          event[0]._doc.Admin = false;
+        } else if  (event.AttendeeKey == req.query.key) {
+          event._doc.Admin = false;
           valid = true;
         }
         if (valid) {
           //SKU - Force remove the Admin key from the event object before sending response
-          delete event[0]._doc.AdminKey;
-          delete event[0]._doc.AttendeeKey;
+          delete event._doc.AdminKey;
+          delete event._doc.AttendeeKey;
           res.status(200);
-          res.send(event[0]);
+          res.send(event);
         } else {
           res.status(400);
           res.send({'error' : 'Oops.. You have invalid permissions to view this event'});
