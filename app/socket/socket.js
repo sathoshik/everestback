@@ -32,44 +32,37 @@ var successfullySetSocket = () => {
           let room = event.NewsfeedID;
           console.log(data.user_id, 'is joining room', room);
           socket.join(room);
-
+          socket.emit('newsfeed subscribe response')
           //ZKH - TODO: emit the last 10 messages as soon as the user is subscribed so the feed is not empty
-          callback("Successfully subscribed to the Newsfeed room");
+          return callback({'valid' : true});
         }
         else {
-          callback("Connecting to the Newsfeed failed");
+          return callback({'valud' : false});
         }
       });
     });
 
     socket.on('add newsfeed post', function (data, callback) {
-      eventController.checkIfUserIsPartOfEvent(data.event_id, data.user_id, "admin", true, (adminIsPartOfEvent, event) => {
-        if (adminIsPartOfEvent && data.room == event.NewsfeedID) {
-
-          newsfeedController.appendNewPost(event.NewsfeedID, data, (isSuccessful) => {
-            if (isSuccessful) {
-
-              //ZKH - data.room keeps each newsfeed on the platform seperate
-              socket.broadcast.to(data.room).emit('new newsfeed posts',
-                //ZKH - TODO refactor this return object to our needs in the front end
-                [{
-                  name: null,
-                  profilePicURL: null,
-                  post: data.post
-                }]
-              );
-              callback("Post was successfully added");
-            }
-            else {
-              callback("Could not complete the request");
-            }
-          });
-
-
-        }
-        else {
-          callback("User is not an admin of this event or an incorrect room number was provided");
-        }
+      eventController.checkIfUserIsPartOfEvent(data.event_id, data.user_id, "admin", true,
+        (adminIsPartOfEvent, event) => {
+          if (adminIsPartOfEvent && data.room == event.NewsfeedID) {
+            newsfeedController.appendNewPost(event.NewsfeedID, data, (isSuccessful) => {
+              if (isSuccessful) {
+                //ZKH - data.room keeps each newsfeed on the platform seperate
+                io.in(data.room).emit('new newsfeed posts',
+                  { name: (data.firstName + ' ' + data.lastName ),
+                    profilePicURL: data.profilePicURL,
+                    post: data.post }
+                );
+                callback({'valid' : true});
+              } else {
+                callback({'valid' : false});
+              }
+            });
+          }
+          else {
+            callback({'valid' : false});
+          }
       });
 
     });

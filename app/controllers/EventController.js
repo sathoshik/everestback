@@ -183,47 +183,55 @@ EventController.getEventDescription = (req, res) => {
  * @return  event object or error message
  */
 EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  returnEventObject , callback) => {
+  let ObjectId = require('mongodb').ObjectID;
+  let userIsPartOfEvent = false;
 
-  //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
-  Event.findOne({_id: event_id}, {_id: 0, AdminID: 1,  AttendeeID: 1, NewsfeedID: 1}, (err, event) =>{
+  if (event_id !== null && user_id !== null && event_id.length == 24 && user_id.length == 24) {
+    //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
+    Event.findOne({_id: ObjectId(event_id)}, {
+      _id: 0,
+      AdminID: 1,
+      AttendeeID: 1,
+      NewsfeedID: 1
+    }, (err, event) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      else if (event.length < 1) {
+        console.log("No event found");
+        return;
+      }
 
-    if (err) {
-      console.log(err);
-      return;
-    }
-    else if(event.length < 1){
-      console.log("No event found");
-      return;
-    }
-
-    var userIsPartOfEvent = false;
-
-    if(restriction == "admin" || restriction == null){
-      event.AdminID.map((adminID) => {
-        if(adminID == user_id){
-          userIsPartOfEvent = true;
-        }
-      });
-    }
-
-    if(restriction == "attendee" || restriction == null){
-      if(!userIsPartOfEvent){
-        event.AttendeeID.map((attendeeID) => {
-          if(attendeeID == user_id){
+      if (restriction == "admin" || restriction == null) {
+        event.AdminID.map((adminID) => {
+          if (adminID == user_id) {
             userIsPartOfEvent = true;
           }
         });
       }
-    }
 
-    if(returnEventObject){
-      callback(userIsPartOfEvent, event);
-    }
-    else{
-      callback(userIsPartOfEvent);
-    }
+      if (restriction == "attendee" || restriction == null) {
+        if (!userIsPartOfEvent) {
+          event.AttendeeID.map((attendeeID) => {
+            if (attendeeID == user_id) {
+              userIsPartOfEvent = true;
+            }
+          });
+        }
+      }
 
-  });
+      if (returnEventObject) {
+        callback(userIsPartOfEvent, event);
+      }
+      else {
+        callback(userIsPartOfEvent);
+      }
+
+    });
+  } else {
+    callback(userIsPartOfEvent)
+  }
 };
 
 //ZKH - ****TESTING CONTROLLERS****
