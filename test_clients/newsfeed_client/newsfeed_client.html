@@ -18,11 +18,11 @@
 <script>
 	$( document ).ready(function() {
   var socket = io();
-      var event_id = "5828ba7afac568109ce4547e";
+      var event_id = "584101b5b2483a57256bdf16";
 
-      var user_id = "581e5d4a7230523030713203";
+      var user_id = "583b5f0b9a64391584e4b4ad";
 
-      var newsfeed_id = "5828ba7afac568109ce4547f";
+      var newsfeed_id = "584101b5b2483a57256bdf17";
 
       var subscriptionData = {
         user_id: user_id,
@@ -39,7 +39,10 @@
       room: newsfeed_id,
       post:$('#m').val(),
       user_id: user_id,
-      event_id: event_id
+      event_id: event_id,
+      firstName: "test",
+      lastName: "test",
+      profilePicURL: "google"
     }, (responseMessage) => {
 
       console.log(responseMessage);
@@ -50,7 +53,7 @@
       socket.on('')
   socket.on('new newsfeed posts', function(data){
     //TODO: data is an array of objects
-    $('#messages').append($('<li>').text(data[0].post));
+    $('#messages').append($('<li>').text(data.post));
   });
 });
 </script>
