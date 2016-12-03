@@ -37,7 +37,7 @@ var successfullySetSocket = () => {
           return callback({'valid' : true});
         }
         else {
-          return callback({'valud' : false});
+          return callback({'valid' : false});
         }
       });
     });
