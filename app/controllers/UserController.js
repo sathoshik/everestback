@@ -209,36 +209,14 @@ UserController.fetchEventList = (req, res, callback) => {
 
 /**
  * Add Event ID in AdminEventID in the User model
- * @param {request} req, {response} res, {event id} event_id
+ * @param {request} req, {response} res, {event id} event_id, {bool} isAdminID
  * @return void or error
  */
 
-UserController.registerAdminID = (req, res, event_id) => {
-
+UserController.registerAdminID = (req, res, event_id, isAdminID) => {
+  var userType = isAdminID ? "AdminEventID" : "AttendeeEventID";
   User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
-      {$push: {"AdminEventID": event_id.toString()}},
-      {new: true},
-      (err, user) => {
-        if (err){
-          console.log(err);
-          res.status(404);
-          res.send({'error' : err.toString()});
-        }
-        res.status(200);
-        res.send({'valid' : 'true'});
-      }
-  );
-};
-
-/**
- * Add Event ID in AttendeeEventID in the User model
- * @param {request} req, {response} res, {event id} event_id
- * @return void or error
- */
-
-UserController.registerAttendeeID = (req, res, event_id) => {
-  User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
-      {$push: {"AttendeeEventID": event_id.toString()}},
+      {$push: {userType: event_id.toString()}},
       {new: true},
       (err, user) => {
         if (err){

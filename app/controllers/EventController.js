@@ -6,6 +6,7 @@ require('../models/Event');
 require('../models/NewsFeed');
 
 var imageUploader = require('../helpers/Tools').imageUploader();
+var eventHelper = require('../helpers/EventHelper');
 var fs = require('fs');
 var mongoose = require('mongoose');
 var util = require('../helpers/Util');
@@ -266,98 +267,6 @@ EventController.fetchEventObjects = (eventIDList, req, res) =>{
   });
 
 };
-
-//ZKH - ****EVENT HELPERS****
-
-var eventHelper = {
-/**
- * Queries The Event Model With an Array Of Events
- * @param  {} eventsObject, {response} res, {() => {...}} callback
- * @return {} or null
- *
- * NOTE: This function will always return an object with
- *       the same key values as the arg "eventsObject"
- */
-  retrieveUserEvents : (eventsObject, res, callback) => {
-
-    var returnObject = {}, numberOfKeys = Object.keys(eventsObject).length, counter = 0;
-
-    for(let key in eventsObject){
-      let additionalObject ={};
-
-      try{
-        eventsObject[key].length;
-      }
-      catch(e){
-        console.log(e);
-        res.status(404);
-        res.send({'error' : 'Unsuccessful operation'});
-        return;
-      }
-
-      if(eventsObject[key] != null || eventsObject[key] != undefined || eventsObject[key].length >= 1 ){
-        Event.find({'_id' : {$in : eventsObject[key]}},{
-          _id: 0,
-          EventName : 1,
-          EventImageURL : 1,
-          Description : 1,
-          Location : 1,
-          StartTime : 1,
-          EndTime : 1
-        }, (err, events) => {
-          counter++;
-          if(err){
-            console.log(err);
-            res.status(404);
-            res.send({'error' : err.toString()});
-            return;
-          }
-          else if(events.length < 1 || events == null || events == undefined){
-            additionalObject[key] = [];
-            returnObject = Object.assign({},
-                returnObject,
-                additionalObject);
-          }
-          else{
-            additionalObject[key] = events;
-            returnObject = Object.assign({},
-                returnObject,
-                additionalObject);
-          }
-
-          if(counter == numberOfKeys){
-            done();
-          }
-        });
-      }
-      else{
-        counter++;
-        additionalObject[key] = [];
-        returnObject = Object.assign({},
-            returnObject,
-            additionalObject);
-        
-        if(counter == numberOfKeys){
-          done();
-        }
-      }
-    }
-
-    //ZKH - Called upon completion of logic checks or querying of all the data provided
-    var done = () =>{
-      if(callback){
-        callback(returnObject);
-      }
-      else{
-        return returnObject;
-      }
-    };
-
-
-  }
-
-}
-//ZKH - ****END EVENT HELPERS****
 
 //ZKH - ****TESTING CONTROLLERS****
 

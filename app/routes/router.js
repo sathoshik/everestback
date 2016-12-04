@@ -72,7 +72,7 @@ router.post('/setUserProfileFields', (req, res) => {
 router.post('/createEvent', (req, res) => {
   if(req.body.UserId != null && req.body.UserId != undefined){
     eventController.createEvent(req, res, (event_id) =>{
-      userController.registerAdminID(req, res, event_id);
+      userController.registerAdminID(req, res, event_id, true);
     });
   }
   else{
