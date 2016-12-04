@@ -1,6 +1,7 @@
 Instructions on Initializing the EverestBack repo:
 1. cd into the current directory in terminal
 2. Run "$ npm install"
+3. 1. npm install npm install grunt-cli -g
 3. Run "$ mkdir data"
 4. Run "$ mongod --dbpath=THE ABSOLUTE PATH TO YOUR PROJECT ENDING WITH /data"
 	EX: "$ mongod --dbpath=D:/Networking-app/EverestBack/data"
@@ -16,6 +17,8 @@ You have now successfully ran a node server and connected a mongo client to the 
 
 Give yourself a round of applause...cause you deserve it...and you're worth it.
 
+SETUP DEV LINTING ENV
+1. npm install npm install grunt-cli -g
 
 Quick Daily Environment setup:
 1. open terminal 
@@ -23,5 +26,12 @@ Quick Daily Environment setup:
 3. Run "$ sh ./QuickDevDB.sh"
 4. open a new terminal
 5. Run "$ node server"
+
+BEFORE PUSHING CODE:
+grunt jslint
+=> Fix errors 
+
+grunt eslint
+=> Fix errors
 
 Das it!
