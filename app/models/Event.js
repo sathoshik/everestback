@@ -25,7 +25,7 @@ var eventSchema = new Schema ({
 	"AdminQRCodeURL" : {type: String, required: false },
 	"AdminKey" : {type: String, required: false },
 	"EventQuestions" : [{type: String, required: false }],
-	"AdminID" : [{type: mongoose.Schema.Types.ObjectId, required: false }],
+	"AdminID" : [{type: mongoose.Schema.Types.ObjectId, required: true }],
 	"AttendeeID" : [{type: mongoose.Schema.Types.ObjectId, required: false }],
 	"NewsfeedID" : {type: mongoose.Schema.Types.ObjectId, required: true }
 });

@@ -44,10 +44,10 @@ var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data="
 
 /**
  * Create event object along with header image upload
- * @param {request} req, {response} res
+ * @param {request} req, {response} res, {() => {...}) registerEventInUserObject
  * @return void or error
  */
-EventController.createEvent = (req, res) => {
+EventController.createEvent = (req, res, registerEventInUserModel) => {
 
   imageUploader(req, res, (err) => {
 
@@ -59,7 +59,7 @@ EventController.createEvent = (req, res) => {
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
     var event = new Event(req.body);
     var newsFeed = new NewsFeed();
-    event.AdminID.push(req.body.UserId);
+    event.AdminID.push(req.body.UserID);
 
     //SKU - Reference the newsFeedID in the event object
     event.NewsfeedID = newsFeed._id;
@@ -71,12 +71,20 @@ EventController.createEvent = (req, res) => {
     //ZKH - Reference the EventID in the newsFeed object
     newsFeed.EventID = event._id;
 
-    if (req.files.length > 0) {
-      event.EventImageURL = req.files[0].path;
-    } else {
-      //SKU - Reference default image.
+    try{
+      if (req.files.length > 0) {
+        event.EventImageURL = req.files[0].path;
+      }
+      else {
+        //SKU - Reference default image.
+        event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
+      }
+    }
+    catch(e){
+      console.log(e);
       event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
     }
+
 
     //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
     fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
@@ -99,8 +107,7 @@ EventController.createEvent = (req, res) => {
                 res.status(500);
                 res.send({'error' : err.toString()});
               } else {
-                res.status(200);
-                res.send({'valid' : 'true'});
+                registerEventInUserModel(event._id);
               }
             });
           }
@@ -135,7 +142,7 @@ EventController.getEventDescription = (req, res) => {
       AdminKey: 1,
       AttendeeKey: 1,
     }, (err, event) => {
-      debugger;
+
 
       if (err) {
         console.log(err);
@@ -233,6 +240,124 @@ EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  ret
     callback(userIsPartOfEvent)
   }
 };
+
+/**
+ * Get details of multiple events
+ * @param { "AdminEventID" : [AdminEventID], "AttendeeEventID" : [AttendeeEventID]} eventIDList, {request} req, {response} res
+ * @return array of event objects
+ */
+
+EventController.fetchEventObjects = (eventIDList, req, res) =>{
+
+  var eventsObject = {
+    "AdminEvents": eventIDList.AdminEventID,
+    "AttendeeEvents": eventIDList.AttendeeEventID
+  };
+
+  eventHelper.retrieveUserEvents(eventsObject, res, (events) => {
+    if(events.AdminEvents == null && events.AttendeeEvents == null){
+      res.status(500);
+      res.send({'error' : 'Events not added correctly'});
+    }
+    else{
+      res.status(200);
+      res.send(events);
+    }
+  });
+
+};
+
+//ZKH - ****EVENT HELPERS****
+
+var eventHelper = {
+/**
+ * Queries The Event Model With an Array Of Events
+ * @param  {} eventsObject, {response} res, {() => {...}} callback
+ * @return {} or null
+ *
+ * NOTE: This function will always return an object with
+ *       the same key values as the arg "eventsObject"
+ */
+  retrieveUserEvents : (eventsObject, res, callback) => {
+
+    var returnObject = {}, numberOfKeys = Object.keys(eventsObject).length, counter = 0;
+
+    for(let key in eventsObject){
+      let additionalObject ={};
+
+      try{
+        eventsObject[key].length;
+      }
+      catch(e){
+        console.log(e);
+        res.status(404);
+        res.send({'error' : 'Unsuccessful operation'});
+        return;
+      }
+
+      if(eventsObject[key] != null || eventsObject[key] != undefined || eventsObject[key].length >= 1 ){
+        Event.find({'_id' : {$in : eventsObject[key]}},{
+          _id: 0,
+          EventName : 1,
+          EventImageURL : 1,
+          Description : 1,
+          Location : 1,
+          StartTime : 1,
+          EndTime : 1
+        }, (err, events) => {
+          counter++;
+          if(err){
+            console.log(err);
+            res.status(404);
+            res.send({'error' : err.toString()});
+            return;
+          }
+          else if(events.length < 1 || events == null || events == undefined){
+            additionalObject[key] = [];
+            returnObject = Object.assign({},
+                returnObject,
+                additionalObject);
+          }
+          else{
+            additionalObject[key] = events;
+            returnObject = Object.assign({},
+                returnObject,
+                additionalObject);
+          }
+
+          if(counter == numberOfKeys){
+            done();
+          }
+        });
+      }
+      else{
+        counter++;
+        additionalObject[key] = [];
+        returnObject = Object.assign({},
+            returnObject,
+            additionalObject);
+        
+        if(counter == numberOfKeys){
+          done();
+        }
+      }
+    }
+
+    //ZKH - Called upon completion of logic checks or querying of all the data provided
+    var done = () =>{
+      if(callback){
+        callback(returnObject);
+      }
+      else{
+        return returnObject;
+      }
+    };
+
+
+  }
+
+}
+//ZKH - ****END EVENT HELPERS****
 
 //ZKH - ****TESTING CONTROLLERS****
 
