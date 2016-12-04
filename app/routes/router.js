@@ -70,9 +70,45 @@ router.post('/setUserProfileFields', (req, res) => {
  * @return void or error
  */
 router.post('/createEvent', (req, res) => {
-  eventController.createEvent(req, res)
+  if(req.body.UserId != null && req.body.UserId != undefined){
+    eventController.createEvent(req, res, (event_id) =>{
+      userController.registerAdminID(req, res, event_id, true);
+    });
+  }
+  else{
+    res.status(404);
+    res.send({'error' : 'UserId not found in request'});
+  }
+
 });
 
+/**
+ * Fetch all events user is part of at {ip}:3000/User/{UserObjectID}/FetchAllEvents
+ * @param {request} req, {response} res
+ * @return {
+ *          AdminEvents:[],
+ *          AttendeeEvents:[]
+ *         }
+ */
+
+router.get('/User/:user/FetchAllEvents', (req, res) => {
+
+  userController.fetchEventList(req, res, (eventList) => {
+    if(eventList != null || eventList !=undefined){
+      if(eventList.AdminEventID.length >= 1 || eventList.AttendeeEventID.length >= 1){
+        eventController.fetchEventObjects(eventList, req, res);
+      }
+      else{
+        res.status(404);
+        res.send({'error' : 'The user is not a member of an event'});
+      }
+    }
+    else{
+      res.status(404);
+      res.send({'error' : 'The user is not a member of an event'});
+    }
+  });
+});
 
 /**
  * Retrieve admin event api end point at {ip}:3000/Event/{EventObjectID}?key={AdminKey}

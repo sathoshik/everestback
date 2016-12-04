@@ -7,6 +7,7 @@ require('../models/User');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var fs = require('fs');
 var mongoose = require('mongoose');
+var ObjectId = require('mongodb').ObjectID;
 
 
 /**
@@ -53,7 +54,11 @@ UserController.signInUser = (req, res) => {
                 res.send({'error' : err.toString()});
               } else {
                 res.status(200);
-                res.send({'_id' : user._id});
+                res.send({'_id' : user._id,
+                          'FirstName' : user.FirstName,
+                          'LastName' : user.LastName,
+                          'ProfileImageURL' : user.ProfileImageURL
+                });
               }
             });
           }
@@ -132,8 +137,6 @@ UserController.addUserProfileFields = (req, res) => {
         }
         else {
 
-          var ObjectId = require('mongodb').ObjectID;
-
           User.update({_id:ObjectId(req.query.id)}, {
             FirstName: user.FirstName,
             LastName: user.LastName,
@@ -163,6 +166,70 @@ UserController.addUserProfileFields = (req, res) => {
     res.send()
   }
 };
+
+/**
+ * Fetch For Eventlists The User Is Part Of
+ * @param {request} req, {response} res, {(eventList) => {...}} callback
+ * @return void
+ */
+UserController.fetchEventList = (req, res, callback) => {
+
+   User.findOne({_id: ObjectId(req.params.user)},
+      {
+    _id: 0,
+    AttendeeEventID: 1,
+    AdminEventID: 1
+      },(err,user) => {
+          if(err){
+            console.log(err);
+            res.status(404);
+            res.send({'error' : err.toString()});
+             callback(null);
+          }
+          else if(!user || user == null || user == undefined){
+            res.status(404);
+            res.send({'error' : 'The user you are looking for does not exist'});
+            callback(null);
+          }
+          else if((user.AdminEventID == null || user.AdminEventID.length < 1) &&
+              (user.AttendeeEventID == null || user.AttendeeEventID.length < 1)){
+            res.status(404);
+            res.send({'error' : 'The user is not a member of an event'});
+            callback(null);
+          }
+          else{
+            callback({
+              "AdminEventID" : user.AdminEventID,
+              "AttendeeEventID" : user.AttendeeEventID
+            });
+          }
+      }
+  );
+};
+
+/**
+ * Add Event ID in AdminEventID in the User model
+ * @param {request} req, {response} res, {event id} event_id, {bool} isAdminID
+ * @return void or error
+ */
+
+UserController.registerAdminID = (req, res, event_id, isAdminID) => {
+  var userType = isAdminID ? "AdminEventID" : "AttendeeEventID";
+  User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
+      {$push: {userType: event_id.toString()}},
+      {new: true},
+      (err, user) => {
+        if (err){
+          console.log(err);
+          res.status(404);
+          res.send({'error' : err.toString()});
+        }
+        res.status(200);
+        res.send({'valid' : 'true'});
+      }
+  );
+};
+
 
 //ZKH - ****TESTING CONTROLLERS****
 

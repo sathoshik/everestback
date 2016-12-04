@@ -6,6 +6,7 @@ require('../models/Event');
 require('../models/NewsFeed');
 
 var imageUploader = require('../helpers/Tools').imageUploader();
+var eventHelper = require('../helpers/EventHelper');
 var fs = require('fs');
 var mongoose = require('mongoose');
 var util = require('../helpers/Util');
@@ -44,10 +45,10 @@ var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data="
 
 /**
  * Create event object along with header image upload
- * @param {request} req, {response} res
+ * @param {request} req, {response} res, {() => {...}) registerEventInUserObject
  * @return void or error
  */
-EventController.createEvent = (req, res) => {
+EventController.createEvent = (req, res, registerEventInUserModel) => {
 
   imageUploader(req, res, (err) => {
 
@@ -71,12 +72,20 @@ EventController.createEvent = (req, res) => {
     //ZKH - Reference the EventID in the newsFeed object
     newsFeed.EventID = event._id;
 
-    if (req.files.length > 0) {
-      event.EventImageURL = req.files[0].path;
-    } else {
-      //SKU - Reference default image.
+    try{
+      if (req.files.length > 0) {
+        event.EventImageURL = req.files[0].path;
+      }
+      else {
+        //SKU - Reference default image.
+        event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
+      }
+    }
+    catch(e){
+      console.log(e);
       event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
     }
+
 
     //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
     fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
@@ -99,8 +108,7 @@ EventController.createEvent = (req, res) => {
                 res.status(500);
                 res.send({'error' : err.toString()});
               } else {
-                res.status(200);
-                res.send({'valid' : 'true'});
+                registerEventInUserModel(event._id);
               }
             });
           }
@@ -135,7 +143,7 @@ EventController.getEventDescription = (req, res) => {
       AdminKey: 1,
       AttendeeKey: 1,
     }, (err, event) => {
-      debugger;
+
 
       if (err) {
         console.log(err);
@@ -232,6 +240,32 @@ EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  ret
   } else {
     callback(userIsPartOfEvent)
   }
+};
+
+/**
+ * Get details of multiple events
+ * @param { "AdminEventID" : [AdminEventID], "AttendeeEventID" : [AttendeeEventID]} eventIDList, {request} req, {response} res
+ * @return array of event objects
+ */
+
+EventController.fetchEventObjects = (eventIDList, req, res) =>{
+
+  var eventsObject = {
+    "AdminEvents": eventIDList.AdminEventID,
+    "AttendeeEvents": eventIDList.AttendeeEventID
+  };
+
+  eventHelper.retrieveUserEvents(eventsObject, res, (events) => {
+    if(events.AdminEvents == null && events.AttendeeEvents == null){
+      res.status(500);
+      res.send({'error' : 'Events not added correctly'});
+    }
+    else{
+      res.status(200);
+      res.send(events);
+    }
+  });
+
 };
 
 //ZKH - ****TESTING CONTROLLERS****
