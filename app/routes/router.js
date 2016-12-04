@@ -70,14 +70,14 @@ router.post('/setUserProfileFields', (req, res) => {
  * @return void or error
  */
 router.post('/createEvent', (req, res) => {
-  if(req.body.UserID != null && req.body.UserID != undefined){
+  if(req.body.UserId != null && req.body.UserId != undefined){
     eventController.createEvent(req, res, (event_id) =>{
       userController.registerAdminID(req, res, event_id);
     });
   }
   else{
     res.status(404);
-    res.send({'error' : 'UserID not found in request'});
+    res.send({'error' : 'UserId not found in request'});
   }
 
 });

@@ -59,7 +59,7 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
     //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
     var event = new Event(req.body);
     var newsFeed = new NewsFeed();
-    event.AdminID.push(req.body.UserID);
+    event.AdminID.push(req.body.UserId);
 
     //SKU - Reference the newsFeedID in the event object
     event.NewsfeedID = newsFeed._id;
