@@ -13,21 +13,21 @@ var Schema = mongoose.Schema;
  * Define Event Schema
  *
  */
-var eventSchema = new Schema ({
-	"EventName" : {type: String, required: true },
-	"EventImageURL" : {type: String, required: true },
-	"Description" : {type: String, required: false },
-	"Location" : {type: String, required: false },
-	"StartTime" : { type: Date, required: false },
-	"EndTime" : {type: Date, required: false },
-	"AttendeeQRCodeURL" : {type: String, required: false },
-	"AttendeeKey" : {type: String, required: false },
-	"AdminQRCodeURL" : {type: String, required: false },
-	"AdminKey" : {type: String, required: false },
-	"EventQuestions" : [{type: String, required: false }],
-	"AdminID" : [{type: mongoose.Schema.Types.ObjectId, required: false }],
-	"AttendeeID" : [{type: mongoose.Schema.Types.ObjectId, required: false }],
-	"NewsfeedID" : {type: mongoose.Schema.Types.ObjectId, required: true }
+var eventSchema = new Schema({
+  "EventName": {type: String, required: true},
+  "EventImageURL": {type: String, required: true},
+  "Description": {type: String, required: false},
+  "Location": {type: String, required: false},
+  "StartTime": {type: Date, required: false},
+  "EndTime": {type: Date, required: false},
+  "AttendeeQRCodeURL": {type: String, required: false},
+  "AttendeeKey": {type: String, required: false},
+  "AdminQRCodeURL": {type: String, required: false},
+  "AdminKey": {type: String, required: false},
+  "EventQuestions": [{type: String, required: false}],
+  "AdminID": [{type: mongoose.Schema.Types.ObjectId, required: false}],
+  "AttendeeID": [{type: mongoose.Schema.Types.ObjectId, required: false}],
+  "NewsfeedID": {type: mongoose.Schema.Types.ObjectId, required: true}
 });
 
 

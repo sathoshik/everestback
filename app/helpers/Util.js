@@ -8,20 +8,20 @@
  * General Util class
  * @constructor
  */
-var Util = function(){}
+var Util = () => {};
 
 
 /**
  * Generate random 16 bit string tokens
- * @return 16 bit randomly generated string
+ * @return {string} 16 bit randomly generated string
  */
-Util.prototype.generateToken = function(){
+Util.prototype.generateToken = () => {
   return Math.random().toString(36).substring(2);
-}
+};
 
 
 /**
  * Add Util() to global module object
  * @constructor
  */
-module.exports = new Util()
+module.exports = new Util();

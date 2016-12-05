@@ -14,7 +14,6 @@
     "no-unreachable": "error",
     "valid-jsdoc": "error",
     "default-case": "error",
-    "no-empty-function": "error",
     "no-multi-spaces": "error",
     "array-bracket-spacing": ["error", "never"],
     "arrow-spacing": "error",
