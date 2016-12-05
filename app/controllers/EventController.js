@@ -10,7 +10,6 @@ var eventHelper = require('../helpers/EventHelper');
 var fs = require('fs');
 var mongoose = require('mongoose');
 var util = require('../helpers/Util');
-var env = require('../config/constants/Environment');
 
 /**
  * Event mongoose model initializer
@@ -45,8 +44,14 @@ var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data="
 
 /**
  * Create event object along with header image upload
+<<<<<<< HEAD
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {undefined} or {error}
+=======
  * @param {request} req, {response} res, {() => {...}) registerEventInUserObject
  * @return void or error
+>>>>>>> sprint-9
  */
 EventController.createEvent = (req, res, registerEventInUserModel) => {
 
@@ -67,8 +72,13 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
     //SKU - Generate two 16 bit tokens for attendee and admin
     event.AttendeeKey = util.generateToken();
     event.AdminKey = util.generateToken();
-    event.AdminQRCodeURL = QRCodeAPi + env.Host + '/Event/' + event._id + '?key=' +  event.AdminKey;
-    event.AttendeeQRCodeURL = QRCodeAPi + env.Host + '/Event/' + event._id + '?key=' +  event.AttendeeKey;
+    event.StartTime = Date.now();
+    event.EndTime = Date.now();
+
+    let uRLPrefix = QRCodeAPi + '/Event/' + event._id + '?key=';
+    event.AdminQRCodeURL = uRLPrefix + event.AdminKey;
+    event.AttendeeQRCodeURL = uRLPrefix + event.AttendeeKey;
+
     //ZKH - Reference the EventID in the newsFeed object
     newsFeed.EventID = event._id;
 
@@ -86,14 +96,14 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
       event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
     }
 
-
-    //SKU - Once the image has been uploaded, check if the image is in the correct path. If not, respond with error
+    //SKU
+    /* Once the image has been uploaded, check if the image is in the correct
+       path. If not, respond with error */
     fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
       if (err) {
         console.log(err);
         res.end(err.toString());
-      }
-      else {
+      } else {
         //SKU - Add Event object to the events Collection
         event.save( (err) => {
           if (err) {
@@ -101,7 +111,8 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
             res.status(500);
             res.send({'error' : err.toString()});
           } else {
-            //SKU - If there are no errors, add newsFeed object to the newsFeeds Collection
+            //SKU - If there are no errors,
+            // add newsFeed object to the newsFeeds Collection
             newsFeed.save( (err) => {
               if (err) {
                 console.log(err);
@@ -121,15 +132,17 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
 
 
 /**
- * Get event information with admin status
- * @param {request} req, {response} res
- * @paramURL {Admin/Attendee Key} key, {Event Object ID} event
- * @return event object or error message
+ * Get event information with admin status.
+ * @param {request} req incoming request.
+ * @param {response} res callback response.
+ * @paramURL {Admin/Attendee Key} key, {Event Object ID} event.
+ * @return {event} or error message.
  */
 EventController.getEventDescription = (req, res) => {
 
   //SKU - If the URL has the correct parameter, return object. Else return 404
-  if (req.query.key !== null && req.params.event !== null && req.params.event.length == 24) {
+  if (req.query.key !== null && req.params.event !== null &&
+    req.params.event.length == 24) {
     var ObjectId = require('mongodb').ObjectID;
 
     Event.findOne({_id: ObjectId(req.params.event)}, {
@@ -143,7 +156,6 @@ EventController.getEventDescription = (req, res) => {
       AdminKey: 1,
       AttendeeKey: 1,
     }, (err, event) => {
-
 
       if (err) {
         console.log(err);
@@ -162,7 +174,7 @@ EventController.getEventDescription = (req, res) => {
         if (event.AdminKey == req.query.key) {
           event._doc.Admin = true;
           valid = true;
-        } else if  (event.AttendeeKey == req.query.key) {
+        } else if (event.AttendeeKey == req.query.key) {
           event._doc.Admin = false;
           valid = true;
         }
@@ -186,61 +198,66 @@ EventController.getEventDescription = (req, res) => {
 
 
 /**
- * Checks if the user is part of an event
- * @param {int eventID} event_id, {int userID} user_id, {admin/attendee/null} restriction
- * @return  event object or error message
+ * Checks if the user is part of an event.
+ * @param {ObjectId} eventID Event ID as referenced by DB.
+ * @param {ObjectId} userID User ID as referenced by DB.
+ * @param {admin/attendee/null} restriction Toggle variable.
+ * @param {Object} returnEventObject Returned event object.
+ * @param {function} callBack Callback function.
+ * @return {event} object or error message.
  */
-EventController.checkIfUserIsPartOfEvent = (event_id, user_id, restriction,  returnEventObject , callback) => {
-  let ObjectId = require('mongodb').ObjectID;
-  let userIsPartOfEvent = false;
+EventController.checkIfUserIsPartOfEvent =
+  (eventID, userID, restriction, returnEventObject , callBack) => {
 
-  if (event_id !== null && user_id !== null && event_id.length == 24 && user_id.length == 24) {
-    //ZKH - Connecting user to a Newsfeed room if user is an admin or an attendee or admin/attendee
-    Event.findOne({_id: ObjectId(event_id)}, {
-      _id: 0,
-      AdminID: 1,
-      AttendeeID: 1,
-      NewsfeedID: 1
-    }, (err, event) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      else if (event.length < 1) {
-        console.log("No event found");
-        return;
-      }
+    let ObjectId = require('mongodb').ObjectID;
+    let userIsPartOfEvent = false;
 
-      if (restriction == "admin" || restriction == null) {
-        event.AdminID.map((adminID) => {
-          if (adminID == user_id) {
-            userIsPartOfEvent = true;
-          }
-        });
-      }
+    if (eventID !== null && userID !== null &&
+      eventID.length == 24 && userID.length == 24) {
 
-      if (restriction == "attendee" || restriction == null) {
-        if (!userIsPartOfEvent) {
-          event.AttendeeID.map((attendeeID) => {
-            if (attendeeID == user_id) {
+      Event.findOne({_id: ObjectId(eventID)}, {
+        _id: 0,
+        AdminID: 1,
+        AttendeeID: 1,
+        NewsfeedID: 1
+      }, (err, event) => {
+        if (err) {
+          console.log(err);
+          return;
+        } else if (event.length < 1) {
+          console.log("No event found");
+          return;
+        }
+
+        if (restriction == "admin" || restriction === null) {
+          event.AdminID.map((adminID) => {
+            if (adminID == userID) {
               userIsPartOfEvent = true;
             }
           });
         }
-      }
 
-      if (returnEventObject) {
-        callback(userIsPartOfEvent, event);
-      }
-      else {
-        callback(userIsPartOfEvent);
-      }
+        if (restriction == "attendee" || restriction === null) {
+          if (!userIsPartOfEvent) {
+            event.AttendeeID.map((attendeeID) => {
+              if (attendeeID == userID) {
+                userIsPartOfEvent = true;
+              }
+            });
+          }
+        }
 
-    });
-  } else {
-    callback(userIsPartOfEvent)
-  }
-};
+        if (returnEventObject) {
+          callBack(userIsPartOfEvent, event);
+        } else {
+          callBack(userIsPartOfEvent);
+        }
+
+      });
+    } else {
+      callBack(userIsPartOfEvent);
+    }
+  };
 
 /**
  * Get details of multiple events
@@ -273,9 +290,9 @@ EventController.fetchEventObjects = (eventIDList, req, res) =>{
 
 /**
  * Create a testing event & newsfeed object without image upload
- * @return {  "event": {},
- *            "newsfeed": {}
- *          }
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {event} { "event": {}, "newsfeed": {} }
  */
 EventController.testingCreateEvent = (req, res) => {
   //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
@@ -293,16 +310,14 @@ EventController.testingCreateEvent = (req, res) => {
       console.log(err);
       res.status(500);
       res.end({'error' : err.toString()});
-    }
-    else {
+    } else {
       //ZKH - If there are no errors, add newsFeed object to the newsFeeds Collection
       newsFeed.save( (err) => {
         if (err) {
           console.log(err);
           res.status(500);
           res.end({'error' : err.toString()});
-        }
-        else {
+        } else {
           res.status(200);
           res.send({event: event, newsfeed: newsFeed});
         }

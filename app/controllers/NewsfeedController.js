@@ -22,26 +22,28 @@ var NewsFeed = mongoose.model('NewsFeed');
  */
 let newsfeedController = this;
 
-
+/*jshint unused:false*/
 /**
  * Append new post to the newsfeed object
- * @param {newsFeedID} newsfeed_id, {data} data, {callBack return} callback
- * @return callback function
+ * @param {ObjectID} newsfeedID NewsfeedID referenced by DB.
+ * @param {data} data The data object being recieved from client.
+ * @param {function} callBack Call back function.
+ * @return {callback} callback
  */
-newsfeedController.appendNewPost = (newsfeed_id, data, callback) => {
+newsfeedController.appendNewPost = (newsfeedID, data, callBack) => {
 
-	NewsFeed.findByIdAndUpdate(
-		newsfeed_id,
-		{ $push: { "Posts": { UserID: data.user_id, Timestamp: null, Post: data.post }}},
-		{},
-		(err, model) => {
-			if(err){
-				console.log(err);
-				callback(false);
-			}
-			callback(true);
-		}
-	);
+  NewsFeed.findByIdAndUpdate(
+    newsfeedID,
+    {$push: {"Posts": {UserID: data.user_id, Timestamp: null, Post: data.post}}},
+    {},
+    (err, model) => {
+      if (err) {
+        console.log(err);
+        callBack(false);
+      }
+      callBack(true);
+    }
+  );
 };
 
 //ZKH - ****TESTING CONTROLLERS***
@@ -49,13 +51,15 @@ newsfeedController.appendNewPost = (newsfeed_id, data, callback) => {
 
 /**
  * Returns all newsfeed objects within the DB
- * @param {request} req, {response} res
+ * @param {request} req incoming request.
+ * @param {response} res callback response.
+ * @return {NewsFeed} Return a list of all newsfeeds
  */
 newsfeedController.testingGetAllNewsfeeds = (req, res) => {
-	NewsFeed.find({}, (err, newsfeeds) => {
-		res.send(newsfeeds);
-	});
-}
+  NewsFeed.find({}, (err, newsFeeds) => {
+    res.send(newsFeeds);
+  });
+};
 
 
 /**
