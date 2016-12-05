@@ -43,22 +43,6 @@ router.post('/createNewUser', (req, res) => {
 });
 
 
-/**
- * Add additional user information api end point at
- * {ip}:3000/setUserProfileFields?id={user._id}
- * @param {request} req incoming request
- * @param {response} res callback response
- * @paramObject { "FirstName" : "",
- *                "LastName" : ""
- *              }
- * @paramObject {jpg} image [optional]
- * @return status 200 or error
- */
-router.post('/setUserProfileFields', (req, res) => {
-  userController.addUserProfileFields(req, res);
-});
-
-
 //SKU - This route is subject to change
 /**
  * Create event api end point at {ip}:3000/createEvent
@@ -76,8 +60,59 @@ router.post('/setUserProfileFields', (req, res) => {
  */
 router.post('/createEvent', (req, res) => {
   eventController.createEvent(req, res);
+  if(req.body.UserId != null && req.body.UserId != undefined){
+    eventController.createEvent(req, res, (event_id) =>{
+      userController.registerAdminID(req, res, event_id, true);
+    });
+  } else {
+    res.status(404);
+    res.send({'error' : 'UserId not found in request'});
+  }
 });
 
+
+/**
+ * Add additional user information api end point at
+ * {ip}:3000/setUserProfileFields?id={user._id}
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @paramObject { "FirstName" : "",
+ *                "LastName" : ""
+ *              }
+ * @paramObject {jpg} image [optional]
+ * @return status 200 or error
+ */
+router.post('/setUserProfileFields', (req, res) => {
+  userController.addUserProfileFields(req, res);
+});
+
+/**
+ * Fetch all events user is part of at {ip}:3000/User/{UserObjectID}/FetchAllEvents
+ * @param {request} req, {response} res
+ * @return {
+ *          AdminEvents:[],
+ *          AttendeeEvents:[]
+ *         }
+ */
+
+router.get('/User/:user/FetchAllEvents', (req, res) => {
+
+  userController.fetchEventList(req, res, (eventList) => {
+    if(eventList != null || eventList !=undefined){
+      if(eventList.AdminEventID.length >= 1 || eventList.AttendeeEventID.length >= 1){
+        eventController.fetchEventObjects(eventList, req, res);
+      }
+      else{
+        res.status(404);
+        res.send({'error' : 'The user is not a member of an event'});
+      }
+    }
+    else{
+      res.status(404);
+      res.send({'error' : 'The user is not a member of an event'});
+    }
+  });
+});
 
 /**
  * Retrieve admin event api end point at {ip}:3000/Event/{EventObjectID}?key={AdminKey}
