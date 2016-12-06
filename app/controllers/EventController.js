@@ -44,14 +44,10 @@ var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data="
 
 /**
  * Create event object along with header image upload
-<<<<<<< HEAD
  * @param {request} req incoming request
  * @param {response} res callback response
- * @return {undefined} or {error}
-=======
- * @param {request} req, {response} res, {() => {...}) registerEventInUserObject
- * @return void or error
->>>>>>> sprint-9
+ * @param {function} registerEventInUserModel Call back function to register event.
+ * @return {void} or {error}
  */
 EventController.createEvent = (req, res, registerEventInUserModel) => {
 
@@ -83,15 +79,14 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
     newsFeed.EventID = event._id;
 
     try{
+
       if (req.files.length > 0) {
         event.EventImageURL = req.files[0].path;
-      }
-      else {
+      } else {
         //SKU - Reference default image.
         event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
       }
-    }
-    catch(e){
+    } catch(e) {
       console.log(e);
       event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
     }
@@ -259,13 +254,16 @@ EventController.checkIfUserIsPartOfEvent =
     }
   };
 
+
 /**
  * Get details of multiple events
- * @param { "AdminEventID" : [AdminEventID], "AttendeeEventID" : [AttendeeEventID]} eventIDList, {request} req, {response} res
- * @return array of event objects
+ * @param {Object} eventIDList List of ids that associated with a user.
+ * { "AdminEventID" : [AdminEventID], "AttendeeEventID" : [AttendeeEventID]}
+ * @param {request} req incoming request.
+ * @param {response} res callback response.
+ * @return {[event]} Array of event objects
  */
-
-EventController.fetchEventObjects = (eventIDList, req, res) =>{
+EventController.fetchEventObjects = (eventIDList, req, res) => {
 
   var eventsObject = {
     "AdminEvents": eventIDList.AdminEventID,
@@ -273,11 +271,10 @@ EventController.fetchEventObjects = (eventIDList, req, res) =>{
   };
 
   eventHelper.retrieveUserEvents(eventsObject, res, (events) => {
-    if(events.AdminEvents == null && events.AttendeeEvents == null){
+    if (events.AdminEvents === null && events.AttendeeEvents === null){
       res.status(500);
       res.send({'error' : 'Events not added correctly'});
-    }
-    else{
+    } else {
       res.status(200);
       res.send(events);
     }
