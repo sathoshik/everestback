@@ -33,32 +33,33 @@ var UserController = this;
  */
 UserController.signInUser = (req, res) => {
   if (req.body.Email !== null && req.body.Email !== '' &&
-      req.body.Password !== null && req.body.Password !== '') {
+    req.body.Password !== null && req.body.Password !== '') {
 
     User.findOne({Email: req.body.Email}, (err, user) => {
       if (err || !user) {
         console.log(err);
         res.status(400);
-        res.send({'error' : 'The Email or Password entered is incorrect'});
+        res.send({'error': 'The Email or Password entered is incorrect'});
       } else {
         user.comparePassword(req.body.Password, function (err, isMatch) {
           if (err || !isMatch) {
             if (err) console.log(err);
             res.status(400);
-            res.send({'error' : 'The Email or Password entered is incorrect'});
+            res.send({'error': 'The Email or Password entered is incorrect'});
           } else {
             user.LatestLoginTimestamp = Date.now();
             user.save((err) => {
               if (err) {
                 console.log(err);
                 res.status(400);
-                res.send({'error' : err.toString()});
+                res.send({'error': err.toString()});
               } else {
                 res.status(200);
-                res.send({'_id' : user._id,
-                          'FirstName' : user.FirstName,
-                          'LastName' : user.LastName,
-                          'ProfileImageURL' : user.ProfileImageURL
+                res.send({
+                  '_id': user._id,
+                  'FirstName': user.FirstName,
+                  'LastName': user.LastName,
+                  'ProfileImageURL': user.ProfileImageURL
                 });
               }
             });
@@ -68,9 +69,10 @@ UserController.signInUser = (req, res) => {
     });
   } else {
     res.status(400);
-    res.send({'error' : 'The Email or Password entered is incorrect'});
+    res.send({'error': 'The Email or Password entered is incorrect'});
   }
 };
+
 
 //SKU - Should we safe guard against extra parameters that could be sent?
 /**
@@ -90,10 +92,10 @@ UserController.createNewUser = (req, res) => {
       if (err) {
         console.log(err);
         res.status(400);
-        res.send({'error' : err.toString()});
+        res.send({'error': err.toString()});
       } else {
         res.status(200);
-        res.send({'_id' : user._id});
+        res.send({'_id': user._id});
       }
     });
   } else {
@@ -143,7 +145,7 @@ UserController.addUserProfileFields = (req, res) => {
 
             var ObjectId = require('mongodb').ObjectID;
 
-            User.update({_id:ObjectId(req.query.id)}, {
+            User.update({_id: ObjectId(req.query.id)}, {
               FirstName: user.FirstName,
               LastName: user.LastName,
               ProfileImageURL: user.ProfileImageURL
@@ -156,85 +158,88 @@ UserController.addUserProfileFields = (req, res) => {
 
                 //SKU
                 /* Safety net is needed for guarding against
-                   submitting objects with no changes. */
+                 submitting objects with no changes. */
               } else if (result.nModified < 1 || result.nModified === null) {
                 res.status(404);
                 res.send();
               } else {
                 res.status(200);
                 console.log(user.ProfileImageURL);
-                res.send({'ProfileImageURL' : user.ProfileImageURL});
+                res.send({'ProfileImageURL': user.ProfileImageURL});
               }
             });
           }
         });
     });
-  } else{
+  } else {
     res.status(404);
-    res.send({'error' : 'Invalid ID provided. Please try again with a valid ID'});
+    res.send({'error': 'Invalid ID provided. Please try again with a valid ID'});
   }
 };
 
+
+/*jshint unused:false*/
 /**
  * Fetch For Eventlists The User Is Part Of
- * @param {request} req, {response} res, {(eventList) => {...}} callback
- * @return void
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @param {function} callback Function of type eventList => {...} callback
+ * @return {void}
  */
 UserController.fetchEventList = (req, res, callback) => {
 
-   User.findOne({_id: ObjectId(req.params.user)},
-      {
-    _id: 0,
-    AttendeeEventID: 1,
-    AdminEventID: 1
-      },(err,user) => {
-          if(err){
-            console.log(err);
-            res.status(404);
-            res.send({'error' : err.toString()});
-             callback(null);
-          }
-          else if(!user || user == null || user == undefined){
-            res.status(404);
-            res.send({'error' : 'The user you are looking for does not exist'});
-            callback(null);
-          }
-          else if((user.AdminEventID == null || user.AdminEventID.length < 1) &&
-              (user.AttendeeEventID == null || user.AttendeeEventID.length < 1)){
-            res.status(404);
-            res.send({'error' : 'The user is not a member of an event'});
-            callback(null);
-          }
-          else{
-            callback({
-              "AdminEventID" : user.AdminEventID,
-              "AttendeeEventID" : user.AttendeeEventID
-            });
-          }
+  User.findOne({_id: ObjectId(req.params.user)},
+    {
+      _id: 0,
+      AttendeeEventID: 1,
+      AdminEventID: 1
+    }, (err, user) => {
+      if (err) {
+        console.log(err);
+        res.status(404);
+        res.send({'error': err.toString()});
+        callback(null);
+      } else if (!user || user === null || user === undefined) {
+        res.status(404);
+        res.send({'error': 'The user you are looking for does not exist'});
+        callback(null);
+      } else if ((user.AdminEventID === null || user.AdminEventID.length < 1) &&
+        (user.AttendeeEventID === null || user.AttendeeEventID.length < 1)) {
+        res.status(404);
+        res.send({'error': 'The user is not a member of an event'});
+        callback(null);
+      } else {
+        callback({
+          "AdminEventID": user.AdminEventID,
+          "AttendeeEventID": user.AttendeeEventID
+        });
       }
+    }
   );
 };
 
+
 /**
  * Add Event ID in AdminEventID in the User model
- * @param {request} req, {response} res, {event id} event_id, {bool} isAdminID
- * @return void or error
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @param {ObjectID} eventID Object ID as referenced in the DB
+ * @param  {Bool} isAdminID Is the user admin?
+ * @return {void} or error
  */
-
-UserController.registerAdminID = (req, res, event_id, isAdminID) => {
-  var userType = isAdminID ? "AdminEventID" : "AttendeeEventID";
+UserController.registerAdminID = (req, res, eventID, isAdminID) => {
   User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
-      {$push: {userType: event_id.toString()}},
-      {new: true},
-      (err, user) => {
-        if (err){
-          console.log(err);
-          res.status(404);
-          res.send({'error' : err.toString()});
-        }
-        res.status(200);
-        res.send({'valid' : 'true'});
+    {$push: {userType: eventID.toString()}},
+    {new: true},
+    (err, user) => {
+      if (err) {
+        console.log(err);
+        res.status(404);
+        res.send({'error': err.toString()});
       }
+      res.status(200);
+      res.send({'valid': 'true'});
+    }
   );
 };
 
@@ -254,7 +259,9 @@ UserController.testingGetAllUsers = function (req, res) {
   });
 };
 
+
 //ZKH - ****END TESTING CONTROLLERS****
+
 
 /**
  * Add UserController to global module object

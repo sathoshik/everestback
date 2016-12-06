@@ -4,18 +4,19 @@
 //  Copyright © 2016 Everest. All rights reserved.
 //
 
+/*eslint func-style: [2, "expression"]*/
 /**
  * General Util class
  * @constructor
  */
-var Util = () => {};
+var Util = function () {};
 
 
 /**
  * Generate random 16 bit string tokens
  * @return {string} 16 bit randomly generated string
  */
-Util.prototype.generateToken = () => {
+Util.prototype.generateToken = function () {
   return Math.random().toString(36).substring(2);
 };
 

@@ -56,13 +56,13 @@ router.post('/createNewUser', (req, res) => {
  *                "EventQuestions" : [],
  *                "UserId" : "_id"
  *               }
- * @return void or error
+ * @return {void} or error
  */
 router.post('/createEvent', (req, res) => {
   eventController.createEvent(req, res);
-  if(req.body.UserId != null && req.body.UserId != undefined){
-    eventController.createEvent(req, res, (event_id) =>{
-      userController.registerAdminID(req, res, event_id, true);
+  if(req.body.UserId !== null && req.body.UserId !== undefined){
+    eventController.createEvent(req, res, (eventID) => {
+      userController.registerAdminID(req, res, eventID, true);
     });
   } else {
     res.status(404);
@@ -86,6 +86,7 @@ router.post('/setUserProfileFields', (req, res) => {
   userController.addUserProfileFields(req, res);
 });
 
+
 /**
  * Fetch all events user is part of at {ip}:3000/User/{UserObjectID}/FetchAllEvents
  * @param {request} req, {response} res
@@ -94,20 +95,17 @@ router.post('/setUserProfileFields', (req, res) => {
  *          AttendeeEvents:[]
  *         }
  */
-
 router.get('/User/:user/FetchAllEvents', (req, res) => {
 
   userController.fetchEventList(req, res, (eventList) => {
-    if(eventList != null || eventList !=undefined){
-      if(eventList.AdminEventID.length >= 1 || eventList.AttendeeEventID.length >= 1){
+    if(eventList !== null || eventList !== undefined) {
+      if(eventList.AdminEventID.length >= 1 || eventList.AttendeeEventID.length >= 1) {
         eventController.fetchEventObjects(eventList, req, res);
-      }
-      else{
+      } else {
         res.status(404);
         res.send({'error' : 'The user is not a member of an event'});
       }
-    }
-    else{
+    } else {
       res.status(404);
       res.send({'error' : 'The user is not a member of an event'});
     }
