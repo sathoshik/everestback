@@ -5,8 +5,8 @@
 //
 
 
-var SystemDirectory = require('./constants/SystemDirectory.json')
-var fs = require('fs')
+var SystemDirectory = require('./constants/SystemDirectory.json');
+var fs = require('fs');
 
 
 /**
@@ -18,7 +18,7 @@ var System = this;
 
 /**
  * System check for all folder structure variables throughout environment
- * @return void or error
+ * @return {void} or {error}
  */
 System.directoryCheck = () => {
 
@@ -31,7 +31,7 @@ System.directoryCheck = () => {
       try {
         fs.mkdirSync(__dirname + "/../.." + SystemDirectory[directory]);
       } catch (err) {
-        console.log(err)
+        console.log(err);
         throw err;
       }
     }

@@ -11,26 +11,27 @@ var Schema = mongoose.Schema;
 /**
  * Define salt work factor.
  * Work Factor is defined as the amount of effort (usually measured in units of time)
-   needed to break a cryptosystem.
+ needed to break a cryptosystem.
  * @benchmark 13 - 0.56773639917374 seconds
  */
-const SALT_WORK_FACTOR =  13;
+const SALT_WORK_FACTOR = 13;
 
 
 /**
  * Define User Schema
  *
  */
-var userSchema = new Schema ({
-	"Email" : {type: String, required: true, index: { unique: true } },
-	"Password" : {type: String, required: true },
-	"FirstName" : {type: String, default: null, required: false },
-	"LastName" : {type: String, default: null, required: false },
-	"ProfileImageURL" : {type: String, default: null, required: false },
-	"LastLoginTimestamp" : {type: Date, default:null, required: false },
-	"OriginTimestamp" : {type: Date, default:null, required: false },
-	"AttendeeEventID" : {type: [Number], default:null, required: false },
-	"AdminEventID" :{type: [Number], default:null, required: false }
+var userSchema = new Schema({
+  "Email": {type: String, required: true, index: {unique: true}},
+  "Password": {type: String, required: true},
+  "FirstName": {type: String, default: null, required: false},
+  "LastName": {type: String, default: null, required: false},
+  "ProfileImageURL": {type: String, default: null, required: false},
+  "LatestLoginTimestamp": {type: Date, default: null, required: false},
+  "LatestLogoutTimestamp": {type: Date, default: null, required: false},
+  "OriginTimestamp": {type: Date, default: null, required: false},
+  "AttendeeEventID": {type: [Number], default: null, required: false},
+  "AdminEventID": {type: [Number], default: null, required: false}
 });
 
 
@@ -60,12 +61,13 @@ userSchema.pre('save', function (next) {
 
 
 /**
- * Compare requested password with the salted and hashed password in the db.
- * @param {string} requestPassword, {function} callBack
- * @return callBack or isMatch = true/false
+ * Compare requested password with the salted and hashed password in the db
+ * @param {string} requestPassword Password that is being compared
+ * @param {function} callBack Call back function to propagate result
+ * @return {function} callBack or isMatch = true/false
  */
-userSchema.methods.comparePassword = (requestPassword, callBack) => {
-  bcrypt.compare(requestPassword, this.password, (err, isMatch) => {
+userSchema.methods.comparePassword = function (requestPassword, callBack) {
+  bcrypt.compare(requestPassword, this.Password, (err, isMatch) => {
     if (err) return callBack(err);
     callBack(null, isMatch);
   });
@@ -77,5 +79,5 @@ userSchema.methods.comparePassword = (requestPassword, callBack) => {
  * @constructor
  * @param {string} User, {Schema} userSchema
  */
- mongoose.model('User', userSchema);
+mongoose.model('User', userSchema);
 
