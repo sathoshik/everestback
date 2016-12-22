@@ -37,7 +37,7 @@ mongoose.connect(url, function(err) {
 //ZKH - Connecting the Node server to port 3000
 http.listen(3000, function(){
 	console.log('listening on *:3000');
-	socketLogic.setSocket(io, (msg) => {
+	socketLogic.socketBroker(io, (msg) => {
 		console.log(msg);
 	});
 });
