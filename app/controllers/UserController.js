@@ -83,6 +83,7 @@ UserController.signInUser = (req, res) => {
  */
 UserController.createNewUser = (req, res) => {
   //SKU - Initialize User object with associated with mongoose model.
+  console.log(req);
   var user = new User(req.body);
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email !== null && user.Password !== null) {

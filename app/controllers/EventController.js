@@ -219,7 +219,7 @@ EventController.checkIfUserIsPartOfEvent =
         if (err) {
           console.log(err);
           return;
-        } else if (event.length < 1) {
+        } else if (event == null) {
           console.log("No event found");
           return;
         }
