@@ -2,10 +2,12 @@ var router = require('express').Router();
 var userController = require('../controllers/UserController');
 var eventController = require('../controllers/EventController');
 var newsfeedController = require('../controllers/NewsfeedController');
+var chatController = require('../controllers/ChatController');
 var jwt = require('jsonwebtoken');
 var secret = require('../config/Secret');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var path = require('path');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 //ZKH - ******PUBLIC ROUTES******
 
@@ -59,16 +61,55 @@ router.post('/createNewUser', (req, res) => {
  * @return {void} or error
  */
 router.post('/createEvent', (req, res) => {
-  eventController.createEvent(req, res);
   if(req.body.UserId !== null && req.body.UserId !== undefined){
     eventController.createEvent(req, res, (eventID) => {
-      userController.registerAdminID(req, res, eventID, true);
+      userController.registerEventID(req.body.UserId, eventID, true)
+        .then((data) =>{
+          res.status(data.StatusCode);
+          res.send({'success' : data.Status});
+        })
+        .catch((error) => {
+          res.status(error.StatusCode);
+          res.send({'error' : data.Status});
+        })
     });
   } else {
     res.status(404);
     res.send({'error' : 'UserId not found in request'});
   }
 });
+
+/**
+ * Join event api end point at {ip}:3000/Event/{EventID}/JoinEvent/{"admin" OR "attendee"}/{UserID}?key={"adminKey" OR "attendeeKey"}
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {void} or error
+ */
+router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
+
+  if((req.query.key != null || req.query.key != undefined)
+    && ObjectId.isValid(req.params.event)
+    && ObjectId.isValid(req.params.user)
+    && (req.params.userType ==="admin" || (req.params.userType ==="attendee"))){
+    eventController.registerUserID(req.params.event, req.params.user, req.params.userType === "admin", req.query.key)
+      .then((data) => {
+       return userController.registerEventID(req.params.user, req.params.event, req.params.userType === "admin")
+      })
+      .then((data) => {
+        res.status(data.StatusCode);
+        res.send({'success' : data.Status});
+      })
+      .catch((error) => {
+        res.status(error.StatusCode);
+        res.send({'error' : error.Status});
+      });
+  }
+  else {
+    res.status(400);
+    res.send({'error': 'Bad Request'});
+  }
+});
+
 
 
 /**
@@ -122,6 +163,36 @@ router.get('/Event/:event', (req, res) => {
   eventController.getEventDescription(req, res);
 });
 
+/**
+ * Create new chat instance at {ip}:3000/Event/{EventObjectID}?participants={Participant 1's ID}&participants={Participant 2's ID}&...
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {
+ *          chatID:{ObjectID}
+ *         }
+ *
+ */
+router.post('/Event/:event/CreateChat', (req, res) => {
+  if(req.body.Message === undefined || req.body.Message === null || req.params.event === null || req.query.participants.length < 1){
+    res.status(400);
+    res.send({'error' : 'Bad request'});
+  }
+  else{
+    var chatPromise = new Promise((resolve, reject) => {
+      chatController.instantiateChat(req, res, resolve, reject);
+    });
+
+    chatPromise.then((data) => {
+      userController.registerChatID(req, res, data);
+    });
+
+    chatPromise.catch((error) => {
+      res.send(400);
+      res.send(error);
+    });
+
+  }
+});
 
 //SKU - This route is probably useless.
 /**

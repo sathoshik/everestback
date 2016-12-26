@@ -30,8 +30,14 @@ var userSchema = new Schema({
   "LatestLoginTimestamp": {type: Date, default: null, required: false},
   "LatestLogoutTimestamp": {type: Date, default: null, required: false},
   "OriginTimestamp": {type: Date, default: null, required: false},
-  "AttendeeEventID": {type: [Number], default: null, required: false},
-  "AdminEventID": {type: [Number], default: null, required: false}
+  "AttendeeEvents":[{
+    "EventID": {type: mongoose.Schema.Types.ObjectId, required: false, index: true},
+    "ChatIDs": [{type: mongoose.Schema.Types.ObjectId, default: [], required: false}]
+  }],
+  "AdminEvents": [{
+    "EventID": {type: mongoose.Schema.Types.ObjectId, required: false, index: true},
+    "ChatIDs": [{type: mongoose.Schema.Types.ObjectId, default: [], required: false}]
+  }]
 });
 
 

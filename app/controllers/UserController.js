@@ -83,7 +83,6 @@ UserController.signInUser = (req, res) => {
  */
 UserController.createNewUser = (req, res) => {
   //SKU - Initialize User object with associated with mongoose model.
-  console.log(req);
   var user = new User(req.body);
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email !== null && user.Password !== null) {
@@ -192,8 +191,8 @@ UserController.fetchEventList = (req, res, callback) => {
   User.findOne({_id: ObjectId(req.params.user)},
     {
       _id: 0,
-      AttendeeEventID: 1,
-      AdminEventID: 1
+      AttendeeEvents: 1,
+      AdminEvents: 1
     }, (err, user) => {
       if (err) {
         console.log(err);
@@ -204,44 +203,175 @@ UserController.fetchEventList = (req, res, callback) => {
         res.status(404);
         res.send({'error': 'The user you are looking for does not exist'});
         callback(null);
-      } else if ((user.AdminEventID === null || user.AdminEventID.length < 1) &&
-        (user.AttendeeEventID === null || user.AttendeeEventID.length < 1)) {
+      } else if ((user.AdminEvents === null || user.AdminEvents.length < 1) &&
+        (user.AttendeeEvents === null || user.AttendeeEvents.length < 1)) {
         res.status(404);
         res.send({'error': 'The user is not a member of an event'});
         callback(null);
       } else {
-        callback({
-          "AdminEventID": user.AdminEventID,
-          "AttendeeEventID": user.AttendeeEventID
+
+        var AdminEventIDs  = [], AttendeeEventIDs = [];
+
+        //ZKH - Extract event Ids from Admin/Attendee Events array
+        var extractEventIDs = (userEvents) => {
+
+          return new Promise((resolve, reject) => {
+            var UserEventID = [];
+            for(let i = 0; i < userEvents.length; i++){
+              UserEventID.push(userEvents[i].EventID.toString());
+              if(userEvents.length === i + 1){
+                return resolve(UserEventID)
+              }
+            }
+          });
+        };
+
+        extractEventIDs(user.AdminEvents)
+          .then((adminEventIds) => {
+          AdminEventIDs = adminEventIds;
+          extractEventIDs(user.AttendeeEvents);
+        })
+          .then((attendeeEventIds) => {
+          AttendeeEventIDs = attendeeEventIds;
+          callback({
+            "AdminEventID": AdminEventIDs,
+            "AttendeeEventID": AttendeeEventIDs
+          });
         });
       }
     }
   );
 };
 
+/**
+ * Register ChatID in AdminEventID / AttendeeEventID
+ * @param {request} req
+ * @param {response} res
+ * @param {Object} data
+ * @return {status} respond with 200 or error
+ */
+
+UserController.registerChatID = (req, res, data) => {
+
+    User.find({'_id' : {$in : data.Participants}},
+      {
+        _id: 0,
+        AttendeeEvents: 1,
+        AdminEvents: 1
+      }, (err, users) => {
+
+          if (err) {
+            console.log(err);
+            res.status(400);
+            res.send({'error': err.toString()});
+          }
+          else if (users.length < 1){
+            console.log(err);
+            res.status(404);
+            res.send({'error': 'Users not found'});
+          }
+          else{
+
+            var updatesCompleted = 0, updatesNeeded = users.length;
+            for(let k = 0; k < users.length; k++){
+
+              //ZKH - Checks AdminEvents and AttendeeEvents and appends ChatID
+              var updateChatID = (UserEvents, resolve) => {
+                for(let j = 0; j < UserEvents.length; j++){
+
+                  if(UserEvents[j].EventID.toString() == req.params.event){
+                    UserEvents[j].ChatID.push(ObjectID(data.ChatID.toString()));
+                    return resolve(true);
+                  }
+
+                  //ZKH - If iterated through all UserEvents and did not find a matching event
+                  if( UserEvents.length === j + 1 ){
+                   return resolve(false);
+                  }
+                }
+              };
+
+              var checkIfAllUsersUpdated = () => {
+
+                //ZKH - Once all users have been successfully assigned a ChatID
+                if(updatesCompleted == updatesNeeded){
+                  res.status(200);
+                  res.send({'ChatID': data.ChatID.toString()});
+                }
+              };
+
+
+              let promise = new Promise((resolve, reject) => {
+                updateChatID(users[k].AdminEvents, resolve);
+              });
+
+              promise.then((foundEventAndUpdatedChat) => {
+                //ZKH - If user was not an admin check if user is an attendee of that event
+                if(!foundEventAndUpdatedChat){
+                  updateChatID(users[k].AttendeeEvents, resolve)
+                }
+                else{
+                  updatesCompleted++;
+                  checkIfAllUsersUpdated();
+                }
+              })
+                .then((foundEventAndUpdatedChat) => {
+                if(!foundEventAndUpdatedChat){
+                  res.status(404);
+                  res.send({'error': 'Event not found'});
+                }
+                else{
+                  updatesCompleted++;
+                  checkIfAllUsersUpdated();
+                }
+              });
+
+            }
+          }
+
+      });
+
+
+}
 
 /**
  * Add Event ID in AdminEventID in the User model
  * @param {request} req incoming request
  * @param {response} res callback response
  * @param {ObjectID} eventID Object ID as referenced in the DB
- * @param  {Bool} isAdminID Is the user admin?
- * @return {void} or error
+ * @param  {Boolean} isAdmin Is the user admin?
+ * @return Promise
  */
-UserController.registerAdminID = (req, res, eventID, isAdminID) => {
-  User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
-    {$push: {userType: eventID.toString()}},
-    {new: true},
-    (err, user) => {
+UserController.registerEventID = (userID, eventID, isAdmin) => {
+
+  return new Promise((resolve, reject) => {
+
+    var doneQuery = (err, user) => {
       if (err) {
         console.log(err);
-        res.status(404);
-        res.send({'error': err.toString()});
+        reject({'StatusCode' : 404, 'Status': err.toString()});
       }
-      res.status(200);
-      res.send({'valid': 'true'});
+      else if(user === null || user === undefined){
+        reject({'StatusCode' : 404, 'Status':  'User not found'});
+      }
+      resolve({'StatusCode' : 200, 'Status' : 'Success'});
+    };
+
+    if(isAdmin){
+      User.findOneAndUpdate({_id: ObjectId(userID.toString())},
+        {$push: {AdminEvents: {EventID: ObjectId(eventID.toString())}}},
+        {new: true},
+        doneQuery
+      );
     }
-  );
+    else{
+      User.findOneAndUpdate({_id: ObjectId(userID.toString())},
+        {$push: {AttendeeEvents: {EventID: ObjectId(eventID.toString())}}},
+        {new: true},
+        doneQuery
+      );
+    }
+  });
 };
 
 

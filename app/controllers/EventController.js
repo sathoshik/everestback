@@ -10,6 +10,7 @@ var eventHelper = require('../helpers/EventHelper');
 var fs = require('fs');
 var mongoose = require('mongoose');
 var util = require('../helpers/Util');
+var ObjectId = require('mongodb').ObjectID;
 
 /**
  * Event mongoose model initializer
@@ -47,82 +48,88 @@ var QRCodeAPi = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data="
  * @param {request} req incoming request
  * @param {response} res callback response
  * @param {function} registerEventInUserModel Call back function to register event.
- * @return {void} or {error}
+ * @return Promise
  */
 EventController.createEvent = (req, res, registerEventInUserModel) => {
 
-  imageUploader(req, res, (err) => {
+    imageUploader(req, res, (err) => {
 
-    if (err) {
-      res.status(500);
-      res.end(err);
-    }
+      if (err) {
+        res.status(500);
+        res.end(err);
+      }
 
-    //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
-    var event = new Event(req.body);
-    var newsFeed = new NewsFeed();
-    event.AdminID.push(req.body.UserId);
+      //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
+      var event = new Event(req.body);
+      var newsFeed = new NewsFeed();
+      event.Admins.push({'AdminID' : req.body.UserId});
 
-    //SKU - Reference the newsFeedID in the event object
-    event.NewsfeedID = newsFeed._id;
-    //SKU - Generate two 16 bit tokens for attendee and admin
-    event.AttendeeKey = util.generateToken();
-    event.AdminKey = util.generateToken();
-    event.StartTime = Date.now();
-    event.EndTime = Date.now();
+      //SKU - Reference the newsFeedID in the event object
+      event.NewsfeedID = newsFeed._id;
+      //SKU - Generate two 16 bit tokens for attendee and admin
+      event.AttendeeKey = util.generateToken();
+      event.AdminKey = util.generateToken();
+      event.StartTime = Date.now();
+      event.EndTime = Date.now();
 
-    let uRLPrefix = QRCodeAPi + '/Event/' + event._id + '?key=';
-    event.AdminQRCodeURL = uRLPrefix + event.AdminKey;
-    event.AttendeeQRCodeURL = uRLPrefix + event.AttendeeKey;
+      let uRLPrefix = QRCodeAPi + '/Event/' + event._id + '?key=';
+      event.AdminQRCodeURL = uRLPrefix + event.AdminKey;
+      event.AttendeeQRCodeURL = uRLPrefix + event.AttendeeKey;
 
-    //ZKH - Reference the EventID in the newsFeed object
-    newsFeed.EventID = event._id;
+      //ZKH - Reference the EventID in the newsFeed object
+      newsFeed.EventID = event._id;
 
-    try{
+      try{
 
-      if (req.files.length > 0) {
-        event.EventImageURL = req.files[0].path;
-      } else {
-        //SKU - Reference default image.
+        if(req.files != undefined && req.files != null){
+          if (req.files.length > 0) {
+            event.EventImageURL = req.files[0].path;
+          } else {
+            //SKU - Reference default image.
+            event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
+          }
+        }
+        else{
+          //ZKH - Reference default image.
+          event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
+        }
+      } catch(e) {
+        console.log(e);
         event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
       }
-    } catch(e) {
-      console.log(e);
-      event.EventImageURL = "/public/uploads/Everest1478401348492.jpg";
-    }
 
-    //SKU
-    /* Once the image has been uploaded, check if the image is in the correct
-       path. If not, respond with error */
-    fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
-      if (err) {
-        console.log(err);
-        res.end(err.toString());
-      } else {
-        //SKU - Add Event object to the events Collection
-        event.save( (err) => {
-          if (err) {
-            console.log(err);
-            res.status(500);
-            res.send({'error' : err.toString()});
-          } else {
-            //SKU - If there are no errors,
-            // add newsFeed object to the newsFeeds Collection
-            newsFeed.save( (err) => {
-              if (err) {
-                console.log(err);
-                res.status(500);
-                res.send({'error' : err.toString()});
-              } else {
-                registerEventInUserModel(event._id);
-              }
-            });
-          }
-        });
-      }
+      //SKU
+      /* Once the image has been uploaded, check if the image is in the correct
+         path. If not, respond with error */
+      fs.access(__dirname + "/../../" + event.EventImageURL, fs.R_OK | fs.W_OK, (err) => {
+        if (err) {
+          console.log(err);
+          res.end(err.toString());
+        } else {
+          //SKU - Add Event object to the events Collection
+          event.save( (err) => {
+            if (err) {
+              console.log(err);
+              res.status(500);
+              res.send({'error' : err.toString()});
+            } else {
+              //SKU - If there are no errors,
+              // add newsFeed object to the newsFeeds Collection
+              newsFeed.save( (err) => {
+                if (err) {
+                  console.log(err);
+                  res.status(500);
+                  res.send({'error' : err.toString()});
+                } else {
+                  registerEventInUserModel(event._id);
+                }
+              });
+            }
+          });
+        }
+      });
     });
 
-  });
 };
 
 
@@ -278,6 +285,47 @@ EventController.fetchEventObjects = (eventIDList, req, res) => {
       res.status(200);
       res.send(events);
     }
+  });
+
+};
+
+/**
+ * Register Admin/Attendee ID to Event
+ * @param {String} eventID
+ * @param {String} userID
+ * @param {Boolean} isAdmin
+ * @return Promise
+ */
+EventController.registerUserID = (eventID, userID, isAdmin, userKey) => {
+
+
+  return new Promise((resolve, reject) => {
+
+    var doneQuery = (err, event) => {
+      if(err){
+       return reject({'StatusCode': 404 , 'Status' : err.toString()});
+      }
+      else if(event === null || event === undefined){
+        return reject({'StatusCode': 404 , 'Status' : 'Event could not be found'});
+      }
+      return resolve({'StatusCode' : 200, 'Status' : 'Valid'});
+    };
+
+    if(isAdmin){
+      Event.findOneAndUpdate({$and: [{_id: ObjectId(eventID.toString())}, {AdminKey: userKey}]},
+        {$push: {Admins: {AdminID: ObjectId(userID.toString())}}},
+        {new: true},
+        doneQuery
+      );
+    }
+    else {
+      Event.findOneAndUpdate({$and: [{_id: ObjectId(eventID.toString())}, {AttendeeKey: userKey}]},
+         {$push: {Attendees: {AttendeeID: ObjectId(userID.toString())}}},
+        {new: true},
+        doneQuery
+      );
+    }
+
   });
 
 };
