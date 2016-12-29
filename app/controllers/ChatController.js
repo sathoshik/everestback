@@ -29,48 +29,48 @@ var ChatController = this;
 
 /**
  * Create a new chat instance and create a new message
- * @param {request} req
- * @param {response} res
- * @param {function} resolve
- * @param {function} reject
- * @return {event} object or error message.
+ * @param {String} eventID
+ * @param {Array} participants
+ * @param {Object} messageData
+ * @return Promise
  */
-ChatController.instantiateChat = (req, res, resolve, reject) => {
-  var chat = new Chat({
-    EventID: req.params.event,
-    Participants: req.query.participants,
-    MessageCount: 1
-  });
+ChatController.instantiateChat = (eventID, participants, messageData ) => {
 
-  var chatMessage = new ChatMessage({
-    ChatID: chat._id,
-    Sender: req.body.Sender,
-    Message: req.body.Message,
-    MessageNumber: 1,
-    Timestamp: req.body.Timestamp ? req.body.Timestamp : Date.now()
-  });
+  return new Promise((resolve, reject) => {
 
-  chatMessage.save( (err) => {
-    if(err){
-      res.status(500);
-      res.send({'error' : err.toString()});
-      return reject('Chat Message Instantiation Failed : '+ err.toString());
-    }
-    else{
-      chat.save( (err) => {
-        if(err){
-          res.status(500);
-          res.send({'error' : err.toString()});
-          return reject('Chat Instantiation Failed : ' + err.toString());
-        }
-        else{
-          return resolve({
-            ChatID: chat._id,
-            Participants : chat.Participants
-          });
-        }
-      });
-    }
+    var chat = new Chat({
+      EventID: eventID,
+      Participants: participants,
+      MessageCount: 1
+    });
+
+    var chatMessage = new ChatMessage({
+      ChatID: chat._id,
+      Sender: messageData.Sender,
+      Message: messageData.Message,
+      MessageNumber: 1,
+      Timestamp: messageData.Timestamp ? messageData.Timestamp : Date.now()
+    });
+
+    chatMessage.save((err) => {
+      if(err){
+        return reject({'StatusCode' : 500, 'Status':  'Chat Message Instantiation Failed - '+ err.toString()});
+      }
+      else{
+        chat.save( (err) => {
+          if(err){
+            return reject({'StatusCode' : 500, 'Status':  'Chat Instantiation Failed - '+ err.toString()});
+          }
+          else{
+            return resolve({
+              'ChatID': chat._id,
+              'Participants' : chat.Participants
+            });
+          }
+        });
+      }
+    });
+
   });
 
 

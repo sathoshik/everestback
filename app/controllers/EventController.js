@@ -10,7 +10,7 @@ var eventHelper = require('../helpers/EventHelper');
 var fs = require('fs');
 var mongoose = require('mongoose');
 var util = require('../helpers/Util');
-var ObjectId = require('mongodb').ObjectID;
+var ObjectID = require('mongodb').ObjectID;
 
 /**
  * Event mongoose model initializer
@@ -145,9 +145,8 @@ EventController.getEventDescription = (req, res) => {
   //SKU - If the URL has the correct parameter, return object. Else return 404
   if (req.query.key !== null && req.params.event !== null &&
     req.params.event.length == 24) {
-    var ObjectId = require('mongodb').ObjectID;
 
-    Event.findOne({_id: ObjectId(req.params.event)}, {
+    Event.findOne({_id: ObjectID(req.params.event)}, {
       _id: 0,
       EventImageURL: 1,
       EventName: 1,
@@ -201,8 +200,8 @@ EventController.getEventDescription = (req, res) => {
 
 /**
  * Checks if the user is part of an event.
- * @param {ObjectId} eventID Event ID as referenced by DB.
- * @param {ObjectId} userID User ID as referenced by DB.
+ * @param {ObjectID} eventID Event ID as referenced by DB.
+ * @param {ObjectID} userID User ID as referenced by DB.
  * @param {admin/attendee/null} restriction Toggle variable.
  * @param {Object} returnEventObject Returned event object.
  * @param {function} callBack Callback function.
@@ -211,13 +210,12 @@ EventController.getEventDescription = (req, res) => {
 EventController.checkIfUserIsPartOfEvent =
   (eventID, userID, restriction, returnEventObject , callBack) => {
 
-    let ObjectId = require('mongodb').ObjectID;
     let userIsPartOfEvent = false;
 
     if (eventID !== null && userID !== null &&
       eventID.length == 24 && userID.length == 24) {
 
-      Event.findOne({_id: ObjectId(eventID)}, {
+      Event.findOne({_id: ObjectID(eventID)}, {
         _id: 0,
         AdminID: 1,
         AttendeeID: 1,
@@ -273,8 +271,8 @@ EventController.checkIfUserIsPartOfEvent =
 EventController.fetchEventObjects = (eventIDList, req, res) => {
 
   var eventsObject = {
-    "AdminEvents": eventIDList.AdminEventID,
-    "AttendeeEvents": eventIDList.AttendeeEventID
+    AdminEvents: eventIDList.AdminEventID,
+    AttendeeEvents: eventIDList.AttendeeEventID
   };
 
   eventHelper.retrieveUserEvents(eventsObject, res, (events) => {
@@ -312,15 +310,15 @@ EventController.registerUserID = (eventID, userID, isAdmin, userKey) => {
     };
 
     if(isAdmin){
-      Event.findOneAndUpdate({$and: [{_id: ObjectId(eventID.toString())}, {AdminKey: userKey}]},
-        {$push: {Admins: {AdminID: ObjectId(userID.toString())}}},
+      Event.findOneAndUpdate({$and: [{_id: ObjectID(eventID.toString())}, {AdminKey: userKey}]},
+        {$push: {Admins: {AdminID: ObjectID(userID.toString())}}},
         {new: true},
         doneQuery
       );
     }
     else {
-      Event.findOneAndUpdate({$and: [{_id: ObjectId(eventID.toString())}, {AttendeeKey: userKey}]},
-         {$push: {Attendees: {AttendeeID: ObjectId(userID.toString())}}},
+      Event.findOneAndUpdate({$and: [{_id: ObjectID(eventID.toString())}, {AttendeeKey: userKey}]},
+         {$push: {Attendees: {AttendeeID: ObjectID(userID.toString())}}},
         {new: true},
         doneQuery
       );

@@ -173,24 +173,26 @@ router.get('/Event/:event', (req, res) => {
  *
  */
 router.post('/Event/:event/CreateChat', (req, res) => {
-  if(req.body.Message === undefined || req.body.Message === null || req.params.event === null || req.query.participants.length < 1){
+  if(req.body.Sender === undefined || req.body.Sender === null ||
+    req.body.Message === undefined || req.body.Message === null ||
+    req.params.event === null || req.query.participants.length < 1){
     res.status(400);
     res.send({'error' : 'Bad request'});
   }
   else{
-    var chatPromise = new Promise((resolve, reject) => {
-      chatController.instantiateChat(req, res, resolve, reject);
-    });
 
-    chatPromise.then((data) => {
-      userController.registerChatID(req, res, data);
-    });
-
-    chatPromise.catch((error) => {
-      res.send(400);
-      res.send(error);
-    });
-
+    chatController.instantiateChat(req.params.event, req.query.participants, req.body)
+      .then((data) => {
+       return userController.registerChatID(req.params.event, data);
+      })
+      .then((data) => {
+        res.status(data.StatusCode);
+        res.send(data.Status);
+      })
+      .catch((error) => {
+        res.status(error.StatusCode);
+        res.send({'error' : error.Status});
+      });
   }
 });
 

@@ -17,7 +17,7 @@ var newsfeedSchema = new Schema({
   "EventID": { type: mongoose.Schema.Types.ObjectId, required: false},
   "Posts": [{
     "UserID": { type: mongoose.Schema.Types.ObjectId, required: false},
-    "Timestamp": { type: Date, default: null, required: false} ,
+    "Timestamp": { type: Date, default: null, required: false},
     "Post": { type: [String], required: false}
   }]
 });

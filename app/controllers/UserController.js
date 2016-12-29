@@ -7,7 +7,7 @@ require('../models/User');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var fs = require('fs');
 var mongoose = require('mongoose');
-var ObjectId = require('mongodb').ObjectID;
+var ObjectID = require('mongodb').ObjectID;
 
 
 /**
@@ -143,9 +143,9 @@ UserController.addUserProfileFields = (req, res) => {
             res.end(err.toString());
           } else {
 
-            var ObjectId = require('mongodb').ObjectID;
+            var ObjectID = require('mongodb').ObjectID;
 
-            User.update({_id: ObjectId(req.query.id)}, {
+            User.update({_id: ObjectID(req.query.id)}, {
               FirstName: user.FirstName,
               LastName: user.LastName,
               ProfileImageURL: user.ProfileImageURL
@@ -188,11 +188,10 @@ UserController.addUserProfileFields = (req, res) => {
  */
 UserController.fetchEventList = (req, res, callback) => {
 
-  User.findOne({_id: ObjectId(req.params.user)},
+  User.findOne({_id: ObjectID(req.params.user)},
     {
       _id: 0,
-      AttendeeEvents: 1,
-      AdminEvents: 1
+      Events: 1
     }, (err, user) => {
       if (err) {
         console.log(err);
@@ -203,8 +202,7 @@ UserController.fetchEventList = (req, res, callback) => {
         res.status(404);
         res.send({'error': 'The user you are looking for does not exist'});
         callback(null);
-      } else if ((user.AdminEvents === null || user.AdminEvents.length < 1) &&
-        (user.AttendeeEvents === null || user.AttendeeEvents.length < 1)) {
+      } else if (user.Events === null || user.Events.length < 1) {
         res.status(404);
         res.send({'error': 'The user is not a member of an event'});
         callback(null);
@@ -213,31 +211,38 @@ UserController.fetchEventList = (req, res, callback) => {
         var AdminEventIDs  = [], AttendeeEventIDs = [];
 
         //ZKH - Extract event Ids from Admin/Attendee Events array
-        var extractEventIDs = (userEvents) => {
+        var extractEventIDs = (events) => {
 
           return new Promise((resolve, reject) => {
-            var UserEventID = [];
-            for(let i = 0; i < userEvents.length; i++){
-              UserEventID.push(userEvents[i].EventID.toString());
-              if(userEvents.length === i + 1){
-                return resolve(UserEventID)
+
+            for(let i = 0; i < events.length; i++){
+              if(events[i].Role === "Admin"){
+                AdminEventIDs.push(events[i].EventID);
+              }
+              else if(events[i].Role === "Attendee"){
+                AttendeeEventIDs.push(events[i].EventID);
+              }
+              else{
+                reject();
+              }
+
+              if(i === events.length - 1){
+                resolve();
               }
             }
           });
         };
 
-        extractEventIDs(user.AdminEvents)
-          .then((adminEventIds) => {
-          AdminEventIDs = adminEventIds;
-          extractEventIDs(user.AttendeeEvents);
-        })
-          .then((attendeeEventIds) => {
-          AttendeeEventIDs = attendeeEventIds;
+        extractEventIDs(user.Events)
+          .then(() => {
           callback({
-            "AdminEventID": AdminEventIDs,
-            "AttendeeEventID": AttendeeEventIDs
+            AdminEventID: AdminEventIDs,
+            AttendeeEventID: AttendeeEventIDs
           });
-        });
+        })
+          .catch(() => {
+            res.status(500).end();
+          });
       }
     }
   );
@@ -245,94 +250,36 @@ UserController.fetchEventList = (req, res, callback) => {
 
 /**
  * Register ChatID in AdminEventID / AttendeeEventID
- * @param {request} req
- * @param {response} res
- * @param {Object} data
- * @return {status} respond with 200 or error
+ * @param {String} eventID
+ * @param {Object} chatData
+ * @return Promise
  */
+UserController.registerChatID = (eventID, chatData) => {
 
-UserController.registerChatID = (req, res, data) => {
+  return new Promise((resolve, reject) => {
 
-    User.find({'_id' : {$in : data.Participants}},
-      {
-        _id: 0,
-        AttendeeEvents: 1,
-        AdminEvents: 1
-      }, (err, users) => {
-
+    for(let i = 0; i < chatData.Participants.length; i++){
+      User.findOneAndUpdate({"_id": chatData.Participants[i], "Events": { $elemMatch: {"EventID" : ObjectID(eventID)}}},
+        {$push: {"Events.$.ChatIDs": ObjectID(chatData.ChatID.toString())}},
+        {new: true},
+        (err, user) => {
           if (err) {
-            console.log(err);
-            res.status(400);
-            res.send({'error': err.toString()});
+            reject({'StatusCode' : 404 , 'Status' : err.toString()});
           }
-          else if (users.length < 1){
-            console.log(err);
-            res.status(404);
-            res.send({'error': 'Users not found'});
+          else if (user === null){
+            reject({'StatusCode' : 404 , 'Status' : 'Users not found'});
           }
           else{
-
-            var updatesCompleted = 0, updatesNeeded = users.length;
-            for(let k = 0; k < users.length; k++){
-
-              //ZKH - Checks AdminEvents and AttendeeEvents and appends ChatID
-              var updateChatID = (UserEvents, resolve) => {
-                for(let j = 0; j < UserEvents.length; j++){
-
-                  if(UserEvents[j].EventID.toString() == req.params.event){
-                    UserEvents[j].ChatID.push(ObjectID(data.ChatID.toString()));
-                    return resolve(true);
-                  }
-
-                  //ZKH - If iterated through all UserEvents and did not find a matching event
-                  if( UserEvents.length === j + 1 ){
-                   return resolve(false);
-                  }
-                }
-              };
-
-              var checkIfAllUsersUpdated = () => {
-
-                //ZKH - Once all users have been successfully assigned a ChatID
-                if(updatesCompleted == updatesNeeded){
-                  res.status(200);
-                  res.send({'ChatID': data.ChatID.toString()});
-                }
-              };
-
-
-              let promise = new Promise((resolve, reject) => {
-                updateChatID(users[k].AdminEvents, resolve);
-              });
-
-              promise.then((foundEventAndUpdatedChat) => {
-                //ZKH - If user was not an admin check if user is an attendee of that event
-                if(!foundEventAndUpdatedChat){
-                  updateChatID(users[k].AttendeeEvents, resolve)
-                }
-                else{
-                  updatesCompleted++;
-                  checkIfAllUsersUpdated();
-                }
-              })
-                .then((foundEventAndUpdatedChat) => {
-                if(!foundEventAndUpdatedChat){
-                  res.status(404);
-                  res.send({'error': 'Event not found'});
-                }
-                else{
-                  updatesCompleted++;
-                  checkIfAllUsersUpdated();
-                }
-              });
-
+            if(i === chatData.Participants.length - 1){
+              resolve({'StatusCode' : 200 , 'Status' : {'ChatID': chatData.ChatID.toString()}});
             }
           }
+        });
+    }
 
-      });
+  });
 
-
-}
+};
 
 /**
  * Add Event ID in AdminEventID in the User model
@@ -346,31 +293,22 @@ UserController.registerEventID = (userID, eventID, isAdmin) => {
 
   return new Promise((resolve, reject) => {
 
-    var doneQuery = (err, user) => {
-      if (err) {
-        console.log(err);
-        reject({'StatusCode' : 404, 'Status': err.toString()});
-      }
-      else if(user === null || user === undefined){
-        reject({'StatusCode' : 404, 'Status':  'User not found'});
-      }
-      resolve({'StatusCode' : 200, 'Status' : 'Success'});
-    };
-
-    if(isAdmin){
-      User.findOneAndUpdate({_id: ObjectId(userID.toString())},
-        {$push: {AdminEvents: {EventID: ObjectId(eventID.toString())}}},
+      User.findOneAndUpdate({_id: ObjectID(userID.toString())},
+        {$push: {Events: {EventID: ObjectID(eventID.toString()), Role: isAdmin ? "Admin" : "Attendee"}}},
         {new: true},
-        doneQuery
+        (err, user) => {
+          if (err) {
+            console.log(err);
+            reject({'StatusCode' : 404, 'Status': err.toString()});
+          }
+          else if(user === null || user === undefined){
+            reject({'StatusCode' : 404, 'Status':  'User not found'});
+          }
+          else{
+            resolve({'StatusCode' : 200, 'Status' : {'EventID' : eventID}});
+          }
+        }
       );
-    }
-    else{
-      User.findOneAndUpdate({_id: ObjectId(userID.toString())},
-        {$push: {AttendeeEvents: {EventID: ObjectId(eventID.toString())}}},
-        {new: true},
-        doneQuery
-      );
-    }
   });
 };
 

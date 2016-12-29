@@ -30,12 +30,9 @@ var userSchema = new Schema({
   "LatestLoginTimestamp": {type: Date, default: null, required: false},
   "LatestLogoutTimestamp": {type: Date, default: null, required: false},
   "OriginTimestamp": {type: Date, default: null, required: false},
-  "AttendeeEvents":[{
+  "Events":[{
     "EventID": {type: mongoose.Schema.Types.ObjectId, required: false, index: true},
-    "ChatIDs": [{type: mongoose.Schema.Types.ObjectId, default: [], required: false}]
-  }],
-  "AdminEvents": [{
-    "EventID": {type: mongoose.Schema.Types.ObjectId, required: false, index: true},
+    "Role": {type: String, enum:["Admin", "Attendee"], required: true, index: true},
     "ChatIDs": [{type: mongoose.Schema.Types.ObjectId, default: [], required: false}]
   }]
 });
