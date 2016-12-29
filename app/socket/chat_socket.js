@@ -1,5 +1,6 @@
 var exports = module.exports;
 var eventController = require('../controllers/EventController');
+var chatController = require('../controllers/ChatController');
 
 /**
  * Invoked upon successfully initializing the server-side socket
@@ -8,28 +9,69 @@ var eventController = require('../controllers/EventController');
  */
 exports.setChatSocket = (io) => {
 
+  //ZKH - Creating a Chat Namespace
+  var nsp = io.of('/chat');
+
   //ZKH - Socket-io Connection
-  io.on('connection', function (socket) {
+  nsp.on('connection', function (socket) {
     //ZKH - Perform Chat Logic Here
 
     //ZKH - Chat Subscribe
+
     /** Subscribing to a Chat
-     * @param
+     * @param {Object} data
+     * @param {Function} callback
+     * @return callback
      */
     socket.on('chat subscribe', function (data, callback) {
-      eventController.checkIfUserIsPartOfEvent(data.event_id, data.user_id, null, true,
-        (userIsPartOfEvent, event) => {
+      eventController.checkIfUserIsPartOfEvent(data.EventID, data.UserID, null, false,
+        (userIsPartOfEvent) => {
           if (userIsPartOfEvent) {
-            let room = event.NewsfeedID;
-            console.log(data.user_id, 'is joining room', room);
+            let room = data.ChatID;
+            console.log(data.UserID, 'is joining room', room);
             socket.join(room);
-            socket.emit('newsfeed subscribe response');
             return callback({'valid': true});
           } else {
             return callback({'valid': false});
           }
         });
     });
+
+    /** Sending a Message in a Chat
+     * @param {Object} data
+     * {ChatID: {String},
+     * UserID: {String},
+     * FirstName: {String},
+     * LastName: {String},
+     * ProfileImageURL: {String},
+     * Message: {String},
+     * TimeStamp: {Date}}
+     * @param {Function} callback
+     * @return callback
+     */
+    socket.on('add chat message', function (data, callback) {
+      chatController.createMessage(data)
+        .then((chatMessage) => {
+          //ZKH - data.ChatID keeps each chat on the platform seperate
+          nsp.in(data.ChatID).emit('new chat message',
+            {
+              ChatID: chatMessage.ChatID,
+              UserID: chatMessage.UserID,
+              FirstName: chatMessage.FirstName,
+              LastName: chatMessage.LastName,
+              ProfileImageURL: chatMessage.ProfileImageURL,
+              Message: chatMessage.Message,
+              MessageCount: chatMessage.MessageCount,
+              TimeStamp: chatMessage.TimeStamp
+            }
+          );
+          return callback({'valid' : true});
+        })
+        .catch((err) => {
+          return callback({'valid' : false, 'status' : err.error});
+        });
+    });
+
   });
 };
 

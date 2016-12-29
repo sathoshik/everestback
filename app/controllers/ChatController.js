@@ -6,6 +6,7 @@ require('../models/Chat');
 require('../models/ChatMessage');
 
 var mongoose = require('mongoose');
+var ObjectID = require('mongodb').ObjectID;
 
 /**
  * Chat mongoose model initializer
@@ -34,7 +35,7 @@ var ChatController = this;
  * @param {Object} messageData
  * @return Promise
  */
-ChatController.instantiateChat = (eventID, participants, messageData ) => {
+ChatController.instantiateChat = (eventID, participants, messageData) => {
 
   return new Promise((resolve, reject) => {
 
@@ -44,13 +45,10 @@ ChatController.instantiateChat = (eventID, participants, messageData ) => {
       MessageCount: 1
     });
 
-    var chatMessage = new ChatMessage({
-      ChatID: chat._id,
-      Sender: messageData.Sender,
-      Message: messageData.Message,
-      MessageNumber: 1,
-      Timestamp: messageData.Timestamp ? messageData.Timestamp : Date.now()
-    });
+    var chatMessage = new ChatMessage(messageData);
+
+    //ZKH - First message in the chat
+    chatMessage.MessageNumber = 1;
 
     chatMessage.save((err) => {
       if(err){
@@ -72,8 +70,45 @@ ChatController.instantiateChat = (eventID, participants, messageData ) => {
     });
 
   });
+};
 
+/**
+ * Create a new message
+ * @param {Object} messageData
+ * {ChatID: {String},
+  * UserID: {String},
+  * FirstName: {String},
+  * LastName: {String},
+  * ProfileImageURL: {String},
+  * Message: {String},
+  * TimeStamp: {Date}}
+ * @return Promise
+ */
+ChatController.createMessage = (messageData) => {
 
+  return new Promise((resolve, reject) => {
 
-
+    Chat.findOneAndUpdate({_id: ObjectID(messageData.ChatID)},
+      {$inc: {MessageCount: 1}},
+      {new: true},
+      (err, chat) => {
+        if(err){
+         return reject({'error' : err.toString()});
+        }
+        else if(chat == null || chat == undefined){
+         return reject({'error' : 'Chat object could not be found'});
+        }
+        else{
+          var chatMessage = new ChatMessage(Object.assign({}, messageData, {MessageNumber: chat.MessageCount}));
+          chatMessage.save((err, newDoc) => {
+            if(err){
+              chat.MessageCount--;
+              chat.save();
+              return reject({'error' : err.toString()});
+            }
+            return resolve(chatMessage);
+          })
+        }
+      });
+  });
 };

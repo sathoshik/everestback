@@ -26,10 +26,10 @@ var eventSchema = new Schema({
   "AdminKey": {type: String, required: false},
   "EventQuestions": [{type: String, required: false}],
   "Admins": [{
-    "AdminID" : {type: mongoose.Schema.Types.ObjectId, required: false}
+    "UserID" : {type: mongoose.Schema.Types.ObjectId, required: false}
   }],
   "Attendees": [{
-    "AttendeeID": {type: mongoose.Schema.Types.ObjectId, required: false}
+    "UserID": {type: mongoose.Schema.Types.ObjectId, required: false}
   }],
   "NewsfeedID": {type: mongoose.Schema.Types.ObjectId, required: true}
 });

@@ -12,7 +12,10 @@ var Schema = mongoose.Schema;
  */
 var chatMessageSchema = new Schema({
   "ChatID": {type: mongoose.Schema.Types.ObjectId, required: true, index: true},
-  "Sender": {type: mongoose.Schema.Types.ObjectId, required: true, index: true},
+  "UserID": {type: mongoose.Schema.Types.ObjectId, required: true, index: true},
+  "FirstName": {type: String, default: null, required: false},
+  "LastName": {type: String, default: null, required: false},
+  "ProfileImageURL": {type: String, default: null, required: false},
   "Message": {type: String, required: true},
   "MessageNumber": {type: Number, required: true},
   "Timestamp": { type: Date, default: Date.now(), required: false}

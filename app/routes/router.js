@@ -66,7 +66,7 @@ router.post('/createEvent', (req, res) => {
       userController.registerEventID(req.body.UserId, eventID, true)
         .then((data) =>{
           res.status(data.StatusCode);
-          res.send({'success' : data.Status});
+          res.send(data.Status);
         })
         .catch((error) => {
           res.status(error.StatusCode);
@@ -97,7 +97,7 @@ router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
       })
       .then((data) => {
         res.status(data.StatusCode);
-        res.send({'success' : data.Status});
+        res.send(data.Status);
       })
       .catch((error) => {
         res.status(error.StatusCode);
@@ -248,11 +248,24 @@ router.get('/testing/getAllUsers', function (req, res) {
  * Newsfeed testing page end point at {ip}:3000/testing/newsfeed
  * @param {request} req incoming request
  * @param {response} res callback response
- * @return Web page of platform to test newsfeed
+ * @return Web page platform to test newsfeed
  */
 router.get('/testing/newsfeed', (req, res) => {
   let joinedPath = path.join(__dirname +
     '/../../test_clients/newsfeed_client/newsfeed_client.html');
+  let normalizedPath = path.normalize(joinedPath);
+  res.sendFile(normalizedPath);
+});
+
+/**
+ * Newsfeed testing page end point at {ip}:3000/testing/chat
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return Web page platform to test chat
+ */
+router.get('/testing/chat', (req, res) => {
+  let joinedPath = path.join(__dirname +
+    '/../../test_clients/chat_client.html');
   let normalizedPath = path.normalize(joinedPath);
   res.sendFile(normalizedPath);
 });

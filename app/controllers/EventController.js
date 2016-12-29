@@ -62,7 +62,7 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
       //SKU - Initialize Event object and Newsfeed object that wil be associated with event.
       var event = new Event(req.body);
       var newsFeed = new NewsFeed();
-      event.Admins.push({'AdminID' : req.body.UserId});
+      event.Admins.push({'UserID' : req.body.UserId});
 
       //SKU - Reference the newsFeedID in the event object
       event.NewsfeedID = newsFeed._id;
@@ -200,25 +200,23 @@ EventController.getEventDescription = (req, res) => {
 
 /**
  * Checks if the user is part of an event.
- * @param {ObjectID} eventID Event ID as referenced by DB.
- * @param {ObjectID} userID User ID as referenced by DB.
+ * @param {String} eventID Event ID as referenced by DB.
+ * @param {String} userID User ID as referenced by DB.
  * @param {admin/attendee/null} restriction Toggle variable.
  * @param {Object} returnEventObject Returned event object.
- * @param {function} callBack Callback function.
+ * @param {function} callback Callback function.
  * @return {event} object or error message.
  */
 EventController.checkIfUserIsPartOfEvent =
-  (eventID, userID, restriction, returnEventObject , callBack) => {
-
-    let userIsPartOfEvent = false;
+  (eventID, userID, restriction, returnEventObject , callback) => {
 
     if (eventID !== null && userID !== null &&
       eventID.length == 24 && userID.length == 24) {
 
       Event.findOne({_id: ObjectID(eventID)}, {
         _id: 0,
-        AdminID: 1,
-        AttendeeID: 1,
+        Admins: 1,
+        Attendees: 1,
         NewsfeedID: 1
       }, (err, event) => {
         if (err) {
@@ -229,33 +227,44 @@ EventController.checkIfUserIsPartOfEvent =
           return;
         }
 
-        if (restriction == "admin" || restriction === null) {
-          event.AdminID.map((adminID) => {
-            if (adminID == userID) {
-              userIsPartOfEvent = true;
+        var checkUsers = (participants, cb) => {
+          for(let i = 0; i < participants.length; i++){
+            if (participants[i].UserID.toString() == userID) {
+              return cb(true);
+            }
+
+            if(i == participants.length - 1){
+              return cb(false);
+            }
+          }
+        };
+
+        if (restriction == "admin") {
+          checkUsers(event.Admins, (isAdmin) => {
+            returnEventObject ? callback(isAdmin, event) : callback(isAdmin);
+          });
+        }
+        else if(restriction == "attendee"){
+          checkUsers(event.Attendees, (isAttendee) => {
+            returnEventObject ? callback(isAttendee, event) : callback(isAttendee);
+          });
+        }
+        else if(restriction == null){
+          checkUsers(event.Admins, (isAdmin) => {
+            if(isAdmin){
+              returnEventObject ? callback(isAdmin, event) : callback(isAdmin);
+            }
+            else{
+              checkUsers(event.Attendees, (isAttendee) => {
+                returnEventObject ? callback(isAttendee, event) : callback(isAttendee);
+              });
             }
           });
         }
 
-        if (restriction == "attendee" || restriction === null) {
-          if (!userIsPartOfEvent) {
-            event.AttendeeID.map((attendeeID) => {
-              if (attendeeID == userID) {
-                userIsPartOfEvent = true;
-              }
-            });
-          }
-        }
-
-        if (returnEventObject) {
-          callBack(userIsPartOfEvent, event);
-        } else {
-          callBack(userIsPartOfEvent);
-        }
-
       });
     } else {
-      callBack(userIsPartOfEvent);
+      returnEventObject ? callback(false, null) : callback(false);
     }
   };
 
@@ -311,14 +320,14 @@ EventController.registerUserID = (eventID, userID, isAdmin, userKey) => {
 
     if(isAdmin){
       Event.findOneAndUpdate({$and: [{_id: ObjectID(eventID.toString())}, {AdminKey: userKey}]},
-        {$push: {Admins: {AdminID: ObjectID(userID.toString())}}},
+        {$push: {Admins: {UserID: ObjectID(userID.toString())}}},
         {new: true},
         doneQuery
       );
     }
     else {
       Event.findOneAndUpdate({$and: [{_id: ObjectID(eventID.toString())}, {AttendeeKey: userKey}]},
-         {$push: {Attendees: {AttendeeID: ObjectID(userID.toString())}}},
+         {$push: {Attendees: {UserID: ObjectID(userID.toString())}}},
         {new: true},
         doneQuery
       );

@@ -10,8 +10,11 @@ var newsfeedController = require('../controllers/NewsfeedController');
  */
 exports.setNewsfeedSocket = (io) => {
 
+  //ZKH - Creating a newsfeed namespace
+  var nsp = io.of('/newsfeed');
+
   //ZKH - Socket-io Connection
-  io.on('connection', function (socket) {
+  nsp.on('connection', function (socket) {
     console.log('a user connected');
 
     //ZKH -The unique identifier for the room will be the same as NewsfeedID
@@ -38,7 +41,7 @@ exports.setNewsfeedSocket = (io) => {
             newsfeedController.appendNewPost(event.NewsfeedID, data, (isSuccessful) => {
               if (isSuccessful) {
                 //ZKH - data.room keeps each newsfeed on the platform seperate
-                io.in(data.room).emit('new newsfeed posts',
+                nsp.in(data.room).emit('new newsfeed posts',
                   {
                     name: (data.firstName + ' ' + data.lastName ),
                     profilePicURL: data.profilePicURL,
