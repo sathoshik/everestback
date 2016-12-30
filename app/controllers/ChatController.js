@@ -50,6 +50,8 @@ ChatController.instantiateChat = (eventID, participants, messageData) => {
     //ZKH - First message in the chat
     chatMessage.MessageNumber = 1;
 
+    chatMessage.ChatID = chat._id;
+
     chatMessage.save((err) => {
       if(err){
         return reject({'StatusCode' : 500, 'Status':  'Chat Message Instantiation Failed - '+ err.toString()});

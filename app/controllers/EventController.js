@@ -121,7 +121,7 @@ EventController.createEvent = (req, res, registerEventInUserModel) => {
                   res.status(500);
                   res.send({'error' : err.toString()});
                 } else {
-                  registerEventInUserModel(event._id);
+                  registerEventInUserModel(event._id, req.body.UserId);
                 }
               });
             }

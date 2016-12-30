@@ -61,9 +61,9 @@ router.post('/createNewUser', (req, res) => {
  * @return {void} or error
  */
 router.post('/createEvent', (req, res) => {
-  if(req.body.UserId !== null && req.body.UserId !== undefined){
-    eventController.createEvent(req, res, (eventID) => {
-      userController.registerEventID(req.body.UserId, eventID, true)
+
+    eventController.createEvent(req, res, (eventID, UserId) => {
+      userController.registerEventID(UserId, eventID, true)
         .then((data) =>{
           res.status(data.StatusCode);
           res.send(data.Status);
@@ -73,10 +73,7 @@ router.post('/createEvent', (req, res) => {
           res.send({'error' : data.Status});
         })
     });
-  } else {
-    res.status(404);
-    res.send({'error' : 'UserId not found in request'});
-  }
+
 });
 
 /**
@@ -244,7 +241,7 @@ router.get('/Event/:event', (req, res) => {
  *
  */
 router.post('/Event/:event/CreateChat', (req, res) => {
-  if(req.body.Sender === undefined || req.body.Sender === null ||
+  if(req.body.UserID === undefined || req.body.UserID === null ||
     req.body.Message === undefined || req.body.Message === null ||
     req.params.event === null || req.query.participants.length < 1){
     res.status(400);
