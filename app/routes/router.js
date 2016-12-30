@@ -7,7 +7,7 @@ var jwt = require('jsonwebtoken');
 var secret = require('../config/Secret');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var path = require('path');
-var ObjectId = require('mongoose').Types.ObjectId;
+var ObjectID = require('mongoose').Types.ObjectId;
 
 //ZKH - ******PUBLIC ROUTES******
 
@@ -88,8 +88,8 @@ router.post('/createEvent', (req, res) => {
 router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
 
   if((req.query.key != null || req.query.key != undefined)
-    && ObjectId.isValid(req.params.event)
-    && ObjectId.isValid(req.params.user)
+    && ObjectID.isValid(req.params.event)
+    && ObjectID.isValid(req.params.user)
     && (req.params.userType ==="admin" || (req.params.userType ==="attendee"))){
     eventController.registerUserID(req.params.event, req.params.user, req.params.userType === "admin", req.query.key)
       .then((data) => {
@@ -151,6 +151,75 @@ router.get('/User/:user/FetchAllEvents', (req, res) => {
       res.send({'error' : 'The user is not a member of an event'});
     }
   });
+});
+
+/**
+ * Fetch all members of an event at {ip}:3000/Event/{EventID}/FetchAllUsers?filter={"Admin" OR "Attendee"}
+ * @param {request} req, {response} res
+ * @return {
+ *          Admins:[],
+ *          Attendees:[]
+ *         }
+ */
+router.get('/Event/:event/FetchAllUsers', (req, res) => {
+  if(ObjectID.isValid(req.params.event)){
+    if(req.query.filter){
+      if(req.query.filter === "Admin" || req.query.filter === "Attendee"){
+        eventController.fetchAllUserIDs(req.params.event, req.query.filter)
+          .then((data) => {
+            if(req.query.filter === "Admin"){
+             return userController.fetchUserDetails(data.Admins);
+            }
+            else{
+             return userController.fetchUserDetails(data.Attendees);
+            }
+          })
+          .then((users) => {
+            res.status(200);
+            res.send(req.query.filter === "Admin" ? {Admins: users} : {Attendees: users});
+          })
+          .catch((error) => {
+            res.status(error.StatusCode);
+            res.send(error.Status);
+          });
+      }
+      else{
+        res.status(400);
+        res.send({'error' : 'Bad Request'});
+      }
+    }
+    else{
+      var responseObject = {}, userIDsObject;
+      eventController.fetchAllUserIDs(req.params.event, null)
+        .then((data) => {
+          userIDsObject = data;
+          if(userIDsObject.Admins.length < 1){
+           return [];
+          }
+          return userController.fetchUserDetails(userIDsObject.Admins);
+        })
+        .then((adminDetails) => {
+          responseObject.Admins = adminDetails;
+
+          if()
+          return userController.fetchUserDetails(userIDsObject.Attendees);
+        })
+        .then((attendeeDetails) => {
+          responseObject.Attendees = attendeeDetails;
+          res.status(200);
+          res.send(responseObject);
+        })
+        .catch((error) => {
+          res.status(error.StatusCode);
+          res.send(error.Status);
+        });
+    }
+  }
+  else{
+    res.status(400);
+    res.send({'error' : 'Bad Request'});
+  }
+
 });
 
 /**

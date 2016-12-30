@@ -297,6 +297,49 @@ EventController.fetchEventObjects = (eventIDList, req, res) => {
 };
 
 /**
+ * Get details of multiple events
+ * @param {String} eventID
+ * @param {String} filter
+ * @return Promise
+ */
+EventController.fetchAllUserIDs = (eventID, filter) => {
+
+  return new Promise((resolve, reject) => {
+    var queryFilter;
+    if(filter){
+      queryFilter = filter === "Admin" ? {Admins : 1} : {Attendees: 1};
+    }
+    else{
+      queryFilter = {Admins: 1, Attendees: 1};
+    }
+      Event.findOne({_id: ObjectID(eventID)},
+        queryFilter,
+        (err, event) => {
+          if(err){
+            return reject({'StatusCode': 404 , 'Status' : err.toString()});
+          }
+          else if(event === null || event === undefined){
+            return reject({'StatusCode': 404 , 'Status' : 'Event could not be found'});
+          }
+          else{
+            if(filter){
+              filter === "Admin"
+                ? resolve({'Admins' : event.Admins.map((admin) => {return admin.UserID})})
+                : resolve({'Attendees' : event.Attendees.map((attendee) => {return attendee.UserID})});
+            }
+            else{
+              resolve({
+                'Admins' : event.Admins.map((admin) => {return admin.UserID}),
+                'Attendees' : event.Attendees.map((attendee) => {return attendee.UserID})
+              });
+            }
+          }
+        });
+  });
+
+};
+
+/**
  * Register Admin/Attendee ID to Event
  * @param {String} eventID
  * @param {String} userID

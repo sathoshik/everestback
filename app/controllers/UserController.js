@@ -312,6 +312,34 @@ UserController.registerEventID = (userID, eventID, isAdmin) => {
   });
 };
 
+/**
+ * Fetch User(s) details
+ * @param {Array} userIDs
+ * @return Promise
+ */
+UserController.fetchUserDetails = (userIDs) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.find({'_id' : {$in : userIDs}},
+      {
+        FirstName: 1,
+        LastName: 1,
+        ProfileImageURL: 1
+      },
+      (err, users) => {
+        if (err) {
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        }
+        else if(users.length < 1){
+          reject({'StatusCode' : 404, 'Status':  'User not found'});
+        }
+        else{
+          resolve(users);
+        }
+      });
+  });
+} ;
 
 //ZKH - ****TESTING CONTROLLERS****
 
