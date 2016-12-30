@@ -201,7 +201,9 @@ router.get('/Event/:event/FetchAllUsers', (req, res) => {
         .then((adminDetails) => {
           responseObject.Admins = adminDetails;
 
-          if()
+          if(userIDsObject.Attendees.length < 1){
+            return [];
+          }
           return userController.fetchUserDetails(userIDsObject.Attendees);
         })
         .then((attendeeDetails) => {
