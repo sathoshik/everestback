@@ -112,8 +112,8 @@ UserController.createNewUser = (req, res) => {
  */
 UserController.addUserProfileFields = (req, res) => {
 
-  //SKU - If the URL has the correct parameter, return object. Else return 404
-  if (req.query.id !== null && req.query.id.length == 24) {
+  //SKU - If the URL has the correct parameter, return object..
+  if (req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "true") {
 
     imageUploader(req, res, (err) => {
 
@@ -141,8 +141,6 @@ UserController.addUserProfileFields = (req, res) => {
             res.end(err.toString());
           } else {
 
-            var ObjectID = require('mongodb').ObjectID;
-
             User.update({_id: ObjectID(req.query.id)}, {
               FirstName: user.FirstName,
               LastName: user.LastName,
@@ -169,7 +167,33 @@ UserController.addUserProfileFields = (req, res) => {
           }
         });
     });
-  } else {
+  }
+  else if(req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "false"){
+
+    var user = new User(req.body);
+    user.ProfileImageURL = null;
+
+    User.update({_id: ObjectID(req.query.id)}, {
+      FirstName: user.FirstName,
+      LastName: user.LastName,
+      ProfileImageURL: user.ProfileImageURL
+    }, (err, result) => {
+
+      if (err) {
+        console.log(err);
+        res.status(500);
+        res.send();
+
+      } else if (result.nModified < 1 || result.nModified === null) {
+        res.status(404);
+        res.send();
+      } else {
+        res.status(200);
+        res.send({'ProfileImageURL': user.ProfileImageURL});
+      }
+    });
+  }
+  else {
     res.status(404);
     res.send({'error': 'Invalid ID provided. Please try again with a valid ID'});
   }
