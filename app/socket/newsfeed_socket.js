@@ -45,7 +45,8 @@ exports.setNewsfeedSocket = (io) => {
                   {
                     name: (data.firstName + ' ' + data.lastName ),
                     profilePicURL: data.profilePicURL,
-                    post: data.post
+                    post: data.post,
+                    timestamp: data.timeStamp
                   }
                 );
                 callback({'valid': true});
