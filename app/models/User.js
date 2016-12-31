@@ -24,8 +24,8 @@ const SALT_WORK_FACTOR = 13;
 var userSchema = new Schema({
   "Email": {type: String, required: true, index: {unique: true}},
   "Password": {type: String, required: true},
-  "FirstName": {type: String, default: null, required: false},
-  "LastName": {type: String, default: null, required: false},
+  "FirstName": {type: String, default: null, required: true},
+  "LastName": {type: String, default: null, required: true},
   "ProfileImageURL": {type: String, default: null, required: false},
   "LatestLoginTimestamp": {type: Date, default: null, required: false},
   "LatestLogoutTimestamp": {type: Date, default: null, required: false},

@@ -37,7 +37,7 @@ exports.setNewsfeedSocket = (io) => {
     socket.on('add newsfeed post', function (data, callback) {
       eventController.checkIfUserIsPartOfEvent(data.event_id, data.user_id, "admin", true,
         (adminIsPartOfEvent, event) => {
-          if (adminIsPartOfEvent && data.room == event.NewsfeedID) {
+          if (adminIsPartOfEvent) {
             newsfeedController.appendNewPost(event.NewsfeedID, data, (isSuccessful) => {
               if (isSuccessful) {
                 //ZKH - data.room keeps each newsfeed on the platform seperate

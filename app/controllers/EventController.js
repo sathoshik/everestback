@@ -203,7 +203,7 @@ EventController.getEventDescription = (req, res) => {
  * @param {String} eventID Event ID as referenced by DB.
  * @param {String} userID User ID as referenced by DB.
  * @param {admin/attendee/null} restriction Toggle variable.
- * @param {Object} returnEventObject Returned event object.
+ * @param {Boolean} returnEventObject Returned event object.
  * @param {function} callback Callback function.
  * @return {event} object or error message.
  */

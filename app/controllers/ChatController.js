@@ -183,3 +183,54 @@ ChatController.fetchLatestMessageWithParticipants = (chatData) => {
     }
   });
 };
+
+/**
+ * Check if user is part of chat
+ * @param {String} userID
+ * @param {String} chatID
+ * @return Promise
+ */
+ChatController.isUserPartOfChat = (userID, chatID) => {
+
+  return new Promise((resolve, reject) => {
+    Chat.findOne({$and:[{'_id': chatID}, {'Participants': {$in: [userID]}}]},
+      {},
+      (err, chat) => {
+        if(err){
+          reject({'StatusCode': 404,'Status' : err.toString()});
+        }
+        else if(!chat){
+          resolve(false);
+        }
+        else{
+          resolve(true);
+        }
+      });
+  });
+};
+
+/**
+ * Fetch delta messages
+ * @param {String} chatID
+ * @param {String} upperBound
+ * @param {String} lowerBound
+ * @return Promise
+ */
+ChatController.fetchDeltaMessages = (chatID, lowerBound, upperBound) => {
+
+  return new Promise((resolve, reject) => {
+    ChatMessage.find({$and:[{'ChatID': chatID}, {'MessageNumber': {$gte: lowerBound, $lte: upperBound}}]},
+      {},
+      (err, messages) => {
+        if(err){
+          reject({'StatusCode': 404,'Status' : err.toString()});
+        }
+        else if(messages.length < 1){
+          reject({'StatusCode': 404,'Status' : 'Messages not found'});
+        }
+        else{
+          resolve(messages);
+        }
+      });
+  });
+};

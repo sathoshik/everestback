@@ -35,15 +35,13 @@ UserController.signInUser = (req, res) => {
   if (req.body.Email !== null && req.body.Email !== '' &&
     req.body.Password !== null && req.body.Password !== '') {
 
-    User.findOne({Email: req.body.Email}, (err, user) => {
+    User.findOne({Email: req.body.Email.toLowerCase()}, (err, user) => {
       if (err || !user) {
-        console.log(err);
         res.status(400);
         res.send({'error': 'The Email or Password entered is incorrect'});
       } else {
         user.comparePassword(req.body.Password, function (err, isMatch) {
           if (err || !isMatch) {
-            if (err) console.log(err);
             res.status(400);
             res.send({'error': 'The Email or Password entered is incorrect'});
           } else {
@@ -84,6 +82,7 @@ UserController.signInUser = (req, res) => {
 UserController.createNewUser = (req, res) => {
   //SKU - Initialize User object with associated with mongoose model.
   var user = new User(req.body);
+  user.Email = req.body.Email.toLowerCase();
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email !== null && user.Password !== null) {
     user.OriginTimestamp = Date.now();
@@ -130,8 +129,7 @@ UserController.addUserProfileFields = (req, res) => {
       if (req.files.length > 0) {
         user.ProfileImageURL = req.files[0].path;
       } else {
-        //SKU - Reference default image.
-        user.ProfileImageURL = "/public/uploads/Everest1478401348492.jpg";
+        user.ProfileImageURL = null;
       }
 
       //SKU - Once the image has been uploaded,
@@ -386,9 +384,10 @@ UserController.fetchChatParticipantDetails = (chats) => {
 /**
  * Fetch User details
  * @param {String} userID
+ * @param {String} eventID
  * @return Promise
  */
-UserController.fetchUserChats = (userID) => {
+UserController.fetchUserChats = (userID, eventID) => {
 
   return new Promise((resolve, reject) => {
 
@@ -405,12 +404,15 @@ UserController.fetchUserChats = (userID) => {
           reject({'StatusCode' : 404, 'Status':  'User not found'});
         }
         else{
-          var chatIDs =[];
           for(let i = 0; i < user.Events.length; i++ ){
-            Array.prototype.push.apply(chatIDs, user.Events[i].ChatIDs);
 
-            if( i == user.Events.length - 1){
-              resolve(chatIDs);
+            if( user.Events[i].EventID.toString() == eventID){
+              resolve(user.Events[i].ChatIDs);
+              break;
+            }
+
+            if(i == user.Events.length - 1){
+              reject({'StatusCode' : 404, 'Status':  'Event not found'});
             }
           }
         }

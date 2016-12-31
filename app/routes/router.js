@@ -273,7 +273,7 @@ router.post('/Event/:event/CreateChat', (req, res) => {
 });
 
 /**
- * Fetch all chats and latest message for a user at {ip}:3000/User/{UserID}/FetchAllChats
+ * Fetch all chats and latest message for a user at {ip}:3000/User/{UserID}/Event/{EventID}/FetchAllChats
  * @param {request} req incoming request
  * @param {response} res callback response
  * @return {
@@ -283,13 +283,13 @@ router.post('/Event/:event/CreateChat', (req, res) => {
  *         }
  *
  */
-router.get('/User/:user/FetchAllChats', (req, res) => {
-  if(!ObjectID.isValid(req.params.user)){
+router.get('/User/:user/Event/:event/FetchAllChats', (req, res) => {
+  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)){
     res.status(400);
     res.send({'error' : 'Bad request'});
   }
   else{
-    userController.fetchUserChats(req.params.user)
+    userController.fetchUserChats(req.params.user, req.params.event)
       .then((IDs) => {
         return chatController.fetchChatDetails(IDs, {
           _id: 1,
@@ -310,6 +310,72 @@ router.get('/User/:user/FetchAllChats', (req, res) => {
       .catch((error) => {
         res.status(error.StatusCode);
         res.send(error.Status);
+      })
+  }
+});
+
+/**
+ * Fetch messages for a chat at {ip}:3000/User/{UserID}/Chat/{ChatID}/FetchMessages?upperbound={Number}&lowerbound={Number}
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return [{MessageObject}]
+ *
+ */
+router.get('/User/:user/Chat/:chat/FetchMessages', (req, res) => {
+  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.chat) ||
+    req.query.lowerbound == null ||req.query.lowerbound == undefined || isNaN(req.query.lowerbound) || Number(req.query.lowerbound) <= 0 ||
+    req.query.upperbound == null ||req.query.upperbound == undefined || isNaN(req.query.upperbound)){
+    res.status(400);
+    res.send({'error' : 'Bad request'});
+  }
+  else{
+    chatController.isUserPartOfChat(req.params.user, req.params.chat)
+      .then((isPartOfChat) => {
+        if(isPartOfChat){
+          return chatController.fetchDeltaMessages(req.params.chat,req.query.lowerbound, req.query.upperbound)
+        }
+      })
+      .then((messages) => {
+        res.status(200);
+        res.send(messages);
+      })
+      .catch((error) => {
+        res.status(error.StatusCode);
+        res.send(error.Status);
+      });
+  }
+});
+
+/**
+ * Fetch Latest Newsfeed Posts at {ip}:3000/User/{UserID}/Event/{EventID}/FetchLatestNewsfeed
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return [{Posts}]
+ *
+ */
+router.get('/User/:user/Event/:event/FetchLatestNewsfeed', (req, res) => {
+  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)){
+    res.status(400);
+    res.send({'error' : 'Bad request'});
+  }
+  else{
+    eventController.checkIfUserIsPartOfEvent(req.params.event, req.params.user, null, true,
+      (userIsPartOfEvent, event) => {
+        if(userIsPartOfEvent){
+          newsfeedController.fetchAllPosts(event.NewsfeedID)
+            .then((posts) => {
+              res.status(200);
+              res.send({'Posts' : posts});
+            })
+            .catch((error) => {
+              res.status(error.StatusCode);
+              res.send(error.Status);
+            });
+        }
+        else{
+          res.status(401);
+          res.send("Unauthorized Request");
+        }
       })
   }
 });
