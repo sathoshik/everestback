@@ -41,7 +41,7 @@ exports.setNewsfeedSocket = (io) => {
             newsfeedController.appendNewPost(event.NewsfeedID, data, (isSuccessful) => {
               if (isSuccessful) {
                 //ZKH - data.room keeps each newsfeed on the platform seperate
-                nsp.in(data.room).emit('new newsfeed posts',
+                nsp.in(event.NewsfeedID).emit('new newsfeed posts',
                   {
                     name: (data.firstName + ' ' + data.lastName ),
                     profilePicURL: data.profilePicURL,
