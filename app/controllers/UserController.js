@@ -184,7 +184,7 @@ UserController.addUserProfileFields = (req, res) => {
         res.status(500);
         res.send();
 
-      } else if (result.nModified < 1 || result.nModified === null) {
+      } else if (!result.ok) {
         res.status(404);
         res.send();
       } else {
@@ -194,7 +194,7 @@ UserController.addUserProfileFields = (req, res) => {
     });
   }
   else {
-    res.status(404);
+    res.status(400);
     res.send({'error': 'Invalid ID provided. Please try again with a valid ID'});
   }
 };
