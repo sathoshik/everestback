@@ -114,3 +114,72 @@ ChatController.createMessage = (messageData) => {
       });
   });
 };
+
+/**
+ * Fetch chat(s) details
+ * @param {Array} chatIDs
+ * @return Promise
+ */
+ChatController.fetchChatDetails = (chatIDs, filter) => {
+
+  return new Promise((resolve, reject) => {
+
+    Chat.find({_id: {$in: chatIDs}},
+      filter,
+      (err, chats) => {
+        if(err){
+          reject({'error' : err.toString()});
+        }
+        else if(chats.length < 1){
+          reject({'error' : 'Chat object could not be found'});
+        }
+        else{
+          resolve(chats);
+        }
+      });
+  });
+};
+
+
+/**
+ * Fetch Latest Message per chat with Participants
+ * @param {Array} chatData
+ * @return Promise
+ */
+ChatController.fetchLatestMessageWithParticipants = (chatData) => {
+
+  return new Promise((resolve, reject) => {
+    var messagesAndParticipants = [], counter = 0;
+    var setMessagesAndParticipants = (data) => {
+      counter++;
+      messagesAndParticipants.push(data);
+      if(counter == chatData.length - 1){
+        resolve(messagesAndParticipants);
+      }
+    };
+
+    for(let i = 0; i < chatData.length; i++){
+      ChatMessage.findOne({$and: [{"ChatID" : chatData[i].ChatID}, {"MessageNumber" : {$eq: chatData[i].MessageCount}}]},
+        {
+          _id: 0,
+          ChatID: 0
+        },
+        (err, message) => {
+          if(err){
+            reject({'StatusCode': 404,'Status' : err.toString()});
+          }
+          else if(!message){
+            reject({'StatusCode': 404,'Status' : "Message not found"});
+          }
+          else{
+
+            setMessagesAndParticipants({
+              ChatID: chatData[i].ChatID,
+              Participants: chatData[i].Participants,
+              LatestMessage: message
+            });
+          }
+        });
+    }
+  });
+};

@@ -317,16 +317,12 @@ UserController.registerEventID = (userID, eventID, isAdmin) => {
  * @param {Array} userIDs
  * @return Promise
  */
-UserController.fetchUserDetails = (userIDs) => {
+UserController.fetchUserDetails = (userIDs, filter) => {
 
   return new Promise((resolve, reject) => {
 
     User.find({'_id' : {$in : userIDs}},
-      {
-        FirstName: 1,
-        LastName: 1,
-        ProfileImageURL: 1
-      },
+      filter,
       (err, users) => {
         if (err) {
           reject({'StatusCode' : 404, 'Status': err.toString()});
@@ -336,6 +332,87 @@ UserController.fetchUserDetails = (userIDs) => {
         }
         else{
           resolve(users);
+        }
+      });
+  });
+};
+
+/**
+ * Fetch Chat Participant(s) details
+ * @param {Array} chats
+ * @return Promise
+ */
+UserController.fetchChatParticipantDetails = (chats) => {
+
+  return new Promise((resolve, reject) => {
+    var responseObject = [], counter = 0;
+    var setResponseObject = (data) => {
+      counter++;
+      responseObject.push(data);
+      if(counter == chats.length - 1){
+        resolve(responseObject);
+      }
+    };
+    for(let i = 0; i < chats.length; i++){
+      User.find({'_id' : {$in : chats[i].Participants}},
+        {
+          FirstName: 1,
+          LastName: 1
+        },
+        (err, users) => {
+          if (err) {
+            reject({'StatusCode' : 404, 'Status': err.toString()});
+          }
+          else if(users.length < 1){
+            reject({'StatusCode' : 404, 'Status':  'User not found'});
+          }
+          else{
+
+            setResponseObject({
+              ChatID: chats[i]._id,
+              MessageCount: chats[i].MessageCount,
+              Participants: users
+            });
+
+          }
+        });
+    }
+
+  });
+
+
+
+};
+/**
+ * Fetch User details
+ * @param {String} userID
+ * @return Promise
+ */
+UserController.fetchUserChats = (userID) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.findOne({'_id' :  userID},
+      {
+        _id: 0,
+        Events: 1
+      },
+      (err, user) => {
+        if (err) {
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        }
+        else if(user == null || user == undefined){
+          reject({'StatusCode' : 404, 'Status':  'User not found'});
+        }
+        else{
+          var chatIDs =[];
+          for(let i = 0; i < user.Events.length; i++ ){
+            Array.prototype.push.apply(chatIDs, user.Events[i].ChatIDs);
+
+            if( i == user.Events.length - 1){
+              resolve(chatIDs);
+            }
+          }
         }
       });
   });

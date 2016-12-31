@@ -87,7 +87,7 @@ router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
   if((req.query.key != null || req.query.key != undefined)
     && ObjectID.isValid(req.params.event)
     && ObjectID.isValid(req.params.user)
-    && (req.params.userType ==="admin" || (req.params.userType ==="attendee"))){
+    && (req.params.userType.toLowerCase() ==="admin" || (req.params.userType.toLowerCase() ==="attendee"))){
     eventController.registerUserID(req.params.event, req.params.user, req.params.userType === "admin", req.query.key)
       .then((data) => {
        return userController.registerEventID(req.params.user, req.params.event, req.params.userType === "admin")
@@ -193,7 +193,11 @@ router.get('/Event/:event/FetchAllUsers', (req, res) => {
           if(userIDsObject.Admins.length < 1){
            return [];
           }
-          return userController.fetchUserDetails(userIDsObject.Admins);
+          return userController.fetchUserDetails(userIDsObject.Admins,{
+            FirstName: 1,
+            LastName: 1,
+            ProfileImageURL: 1
+          });
         })
         .then((adminDetails) => {
           responseObject.Admins = adminDetails;
@@ -201,7 +205,11 @@ router.get('/Event/:event/FetchAllUsers', (req, res) => {
           if(userIDsObject.Attendees.length < 1){
             return [];
           }
-          return userController.fetchUserDetails(userIDsObject.Attendees);
+          return userController.fetchUserDetails(userIDsObject.Attendees, {
+            FirstName: 1,
+            LastName: 1,
+            ProfileImageURL: 1
+          });
         })
         .then((attendeeDetails) => {
           responseObject.Attendees = attendeeDetails;
@@ -243,7 +251,7 @@ router.get('/Event/:event', (req, res) => {
 router.post('/Event/:event/CreateChat', (req, res) => {
   if(req.body.UserID === undefined || req.body.UserID === null ||
     req.body.Message === undefined || req.body.Message === null ||
-    req.params.event === null || req.query.participants.length < 1){
+    req.params.event === null || req.query.participants.length < 2){
     res.status(400);
     res.send({'error' : 'Bad request'});
   }
@@ -261,6 +269,48 @@ router.post('/Event/:event/CreateChat', (req, res) => {
         res.status(error.StatusCode);
         res.send({'error' : error.Status});
       });
+  }
+});
+
+/**
+ * Fetch all chats and latest message for a user at {ip}:3000/User/{UserID}/FetchAllChats
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {
+ *          ChatID: {String},
+ *          Participants:[{UserID: {String}, FirstName: {String}, LastName: {String}}],
+ *          LatestMessage: {MessageObject}
+ *         }
+ *
+ */
+router.get('/User/:user/FetchAllChats', (req, res) => {
+  if(!ObjectID.isValid(req.params.user)){
+    res.status(400);
+    res.send({'error' : 'Bad request'});
+  }
+  else{
+    userController.fetchUserChats(req.params.user)
+      .then((IDs) => {
+        return chatController.fetchChatDetails(IDs, {
+          _id: 1,
+          Participants: 1,
+          MessageCount: 1
+        });
+      })
+      .then((chats) => {
+        return userController.fetchChatParticipantDetails(chats);
+      })
+      .then((chats) => {
+       return chatController.fetchLatestMessageWithParticipants(chats);
+      })
+      .then((responseData) => {
+        res.status(200);
+        res.send(responseData);
+      })
+      .catch((error) => {
+        res.status(error.StatusCode);
+        res.send(error.Status);
+      })
   }
 });
 

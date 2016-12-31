@@ -72,6 +72,10 @@ exports.setChatSocket = (io) => {
         });
     });
 
+    socket.on('disconnect', function () {
+      console.log('user disconnected');
+    });
+
   });
 };
 
