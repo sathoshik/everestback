@@ -17,32 +17,34 @@
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
 	$( document ).ready(function() {
-  var socket = io("/newsfeed");
-      var event_id = "586c335c615c3466fd132cf8";
 
-      var user_id = "5867f28222f2851db635bda7";
+      var socket = io('/chat');
+      var EventID = "5865679fd1cdcc31d4741563";
 
-      var newsfeed_id = "586c335c615c3466fd132cf9";
+      var UserID = "58644aa5da6a862f3c1605bd";
+
+      var ChatID = "586572fbd1cdcc31d4741569";
 
       var subscriptionData = {
-        user_id: user_id,
-        event_id: event_id
+        EventID,
+        UserID,
+        ChatID
       };
 
 
-      socket.emit('newsfeed subscribe', subscriptionData , (message) => {
+      socket.emit('chat subscribe', subscriptionData , (message) => {
         console.log(message);
       });
 
   $('form').submit(function(){
-    socket.emit('add newsfeed post', {
-      post:$('#m').val(),
-      user_id: user_id,
-      event_id: event_id,
-      firstName: "Zain",
-      lastName: "test",
-      profilePicURL: "public/uploads/file-1483228267683.png",
-      timeStamp: new Date().toISOString()
+    socket.emit('add chat message', {
+      ChatID: subscriptionData.ChatID,
+      UserID: subscriptionData.UserID,
+      FirstName: "Zain",
+      LastName: "Khan",
+      ProfileImageURL: "example@example.yadiyada./fdfsd",
+      Message: $('#m').val(),
+      TimeStamp: Date.now()
     }, (responseMessage) => {
 
       console.log(responseMessage);
@@ -51,9 +53,9 @@
     return false;
   });
       socket.on('')
-  socket.on('new newsfeed posts', function(data){
+  socket.on('new chat message', function(data){
     //TODO: data is an array of objects
-    $('#messages').append($('<li>').text(data.post));
+    $('#messages').append($('<li>').text(data.Message));
   });
 });
 </script>

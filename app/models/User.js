@@ -24,14 +24,17 @@ const SALT_WORK_FACTOR = 13;
 var userSchema = new Schema({
   "Email": {type: String, required: true, index: {unique: true}},
   "Password": {type: String, required: true},
-  "FirstName": {type: String, default: null, required: false},
-  "LastName": {type: String, default: null, required: false},
+  "FirstName": {type: String, required: true},
+  "LastName": {type: String, required: true},
   "ProfileImageURL": {type: String, default: null, required: false},
   "LatestLoginTimestamp": {type: Date, default: null, required: false},
   "LatestLogoutTimestamp": {type: Date, default: null, required: false},
   "OriginTimestamp": {type: Date, default: null, required: false},
-  "AttendeeEventID": {type: [Number], default: null, required: false},
-  "AdminEventID": {type: [Number], default: null, required: false}
+  "Events":[{
+    "EventID": {type: mongoose.Schema.Types.ObjectId, required: false, index: true},
+    "Role": {type: String, enum:["Admin", "Attendee"], required: true, index: true},
+    "ChatIDs": [{type: mongoose.Schema.Types.ObjectId, default: [], required: false}]
+  }]
 });
 
 

@@ -25,14 +25,18 @@ var eventSchema = new Schema({
   "AdminQRCodeURL": {type: String, required: false},
   "AdminKey": {type: String, required: false},
   "EventQuestions": [{type: String, required: false}],
-  "AdminID": [{type: mongoose.Schema.Types.ObjectId, required: false}],
-  "AttendeeID": [{type: mongoose.Schema.Types.ObjectId, required: false}],
+  "Admins": [{
+    "UserID" : {type: mongoose.Schema.Types.ObjectId, required: false}
+  }],
+  "Attendees": [{
+    "UserID": {type: mongoose.Schema.Types.ObjectId, required: false}
+  }],
   "NewsfeedID": {type: mongoose.Schema.Types.ObjectId, required: true}
 });
 
 
 /**
- * Add Event Model to global mongoose model object and evets collections
+ * Add Event Model to global mongoose model object and events collections
  * @constructor
  * @param {Schema} eventSchema, {string} Event
  */

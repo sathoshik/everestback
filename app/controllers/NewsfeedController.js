@@ -20,7 +20,7 @@ var NewsFeed = mongoose.model('NewsFeed');
  * NewsFeedController Initializer
  * @constructor
  */
-let newsfeedController = this;
+let NewsfeedController = this;
 
 /*jshint unused:false*/
 /**
@@ -30,20 +30,63 @@ let newsfeedController = this;
  * @param {function} callBack Call back function.
  * @return {callback} callback
  */
-newsfeedController.appendNewPost = (newsfeedID, data, callBack) => {
+NewsfeedController.appendNewPost = (newsfeedID, data, callBack) => {
 
   NewsFeed.findByIdAndUpdate(
     newsfeedID,
-    {$push: {"Posts": {UserID: data.user_id, Timestamp: null, Post: data.post}}},
+    {$push: {"Posts": {
+      UserID: data.user_id,
+      Timestamp: data.timeStamp,
+      ProfileImageURL: data.profilePicURL,
+      FirstName: data.firstName,
+      LastName: data.lastName,
+      Post: data.post}
+    }},
     {},
     (err, model) => {
       if (err) {
         console.log(err);
         callBack(false);
       }
+      if(!model){
+        callback(false);
+      }
       callBack(true);
     }
   );
+};
+
+/**
+ * Fetch All Posts
+ * @param {String} newsfeedID
+ * @return Promise
+ */
+NewsfeedController.fetchAllPosts = (newsfeedID) => {
+
+  return new Promise((resolve, reject) => {
+    NewsFeed.aggregate([
+      {$match: {
+        '_id' : newsfeedID
+      }},
+      //ZKH - Sort in descending order
+      {$sort: {
+        'Posts.Timestamp': -1
+      }},
+      //ZKH - Only fetch 1 doc
+      {$limit: 1 }
+    ],
+      (err, newsfeed) => {
+        if (err) {
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        }
+        else if(newsfeed.length < 1){
+          reject({'StatusCode' : 404, 'Status':  'Newsfeed not found'});
+        }
+        else{
+          resolve(newsfeed[0].Posts);
+        }
+      });
+  });
 };
 
 //ZKH - ****TESTING CONTROLLERS***
@@ -55,7 +98,7 @@ newsfeedController.appendNewPost = (newsfeedID, data, callBack) => {
  * @param {response} res callback response.
  * @return {NewsFeed} Return a list of all newsfeeds
  */
-newsfeedController.testingGetAllNewsfeeds = (req, res) => {
+NewsfeedController.testingGetAllNewsfeeds = (req, res) => {
   NewsFeed.find({}, (err, newsFeeds) => {
     res.send(newsFeeds);
   });
@@ -66,4 +109,4 @@ newsfeedController.testingGetAllNewsfeeds = (req, res) => {
  * Add NewsFeedController to global module object
  * @constructor
  */
-module.exports = newsfeedController;
+module.exports = NewsfeedController;

@@ -11,7 +11,7 @@ var router = require('./app/routes/router');
 var expressJWT = require('express-jwt');
 
 //SKU - Upon initializing, make sure all necessary folder structures exists.
-System.directoryCheck()
+System.directoryCheck();
 
 //SKU - Cross domain issue solution for Everest Web
 app.use( (req, res, next)  =>{

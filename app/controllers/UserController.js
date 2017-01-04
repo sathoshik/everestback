@@ -7,7 +7,7 @@ require('../models/User');
 var imageUploader = require('../helpers/Tools').imageUploader();
 var fs = require('fs');
 var mongoose = require('mongoose');
-var ObjectId = require('mongodb').ObjectID;
+var ObjectID = require('mongodb').ObjectID;
 
 
 /**
@@ -35,15 +35,13 @@ UserController.signInUser = (req, res) => {
   if (req.body.Email !== null && req.body.Email !== '' &&
     req.body.Password !== null && req.body.Password !== '') {
 
-    User.findOne({Email: req.body.Email}, (err, user) => {
+    User.findOne({Email: req.body.Email.toLowerCase()}, (err, user) => {
       if (err || !user) {
-        console.log(err);
         res.status(400);
         res.send({'error': 'The Email or Password entered is incorrect'});
       } else {
         user.comparePassword(req.body.Password, function (err, isMatch) {
           if (err || !isMatch) {
-            if (err) console.log(err);
             res.status(400);
             res.send({'error': 'The Email or Password entered is incorrect'});
           } else {
@@ -83,8 +81,8 @@ UserController.signInUser = (req, res) => {
  */
 UserController.createNewUser = (req, res) => {
   //SKU - Initialize User object with associated with mongoose model.
-  console.log(req);
   var user = new User(req.body);
+  user.Email = req.body.Email.toLowerCase();
   //SKU - If the request does not have email && password, return 500 error.
   if (user.Email !== null && user.Password !== null) {
     user.OriginTimestamp = Date.now();
@@ -114,8 +112,8 @@ UserController.createNewUser = (req, res) => {
  */
 UserController.addUserProfileFields = (req, res) => {
 
-  //SKU - If the URL has the correct parameter, return object. Else return 404
-  if (req.query.id !== null && req.query.id.length == 24) {
+  //SKU - If the URL has the correct parameter, return object..
+  if (req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "true") {
 
     imageUploader(req, res, (err) => {
 
@@ -131,8 +129,7 @@ UserController.addUserProfileFields = (req, res) => {
       if (req.files.length > 0) {
         user.ProfileImageURL = req.files[0].path;
       } else {
-        //SKU - Reference default image.
-        user.ProfileImageURL = "/public/uploads/Everest1478401348492.jpg";
+        user.ProfileImageURL = null;
       }
 
       //SKU - Once the image has been uploaded,
@@ -144,9 +141,7 @@ UserController.addUserProfileFields = (req, res) => {
             res.end(err.toString());
           } else {
 
-            var ObjectId = require('mongodb').ObjectID;
-
-            User.update({_id: ObjectId(req.query.id)}, {
+            User.update({_id: ObjectID(req.query.id)}, {
               FirstName: user.FirstName,
               LastName: user.LastName,
               ProfileImageURL: user.ProfileImageURL
@@ -172,8 +167,34 @@ UserController.addUserProfileFields = (req, res) => {
           }
         });
     });
-  } else {
-    res.status(404);
+  }
+  else if(req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "false"){
+
+    var user = new User(req.body);
+    user.ProfileImageURL = null;
+
+    User.update({_id: ObjectID(req.query.id)}, {
+      FirstName: user.FirstName,
+      LastName: user.LastName,
+      ProfileImageURL: user.ProfileImageURL
+    }, (err, result) => {
+
+      if (err) {
+        console.log(err);
+        res.status(500);
+        res.send();
+
+      } else if (!result.ok) {
+        res.status(404);
+        res.send();
+      } else {
+        res.status(200);
+        res.send({'ProfileImageURL': user.ProfileImageURL});
+      }
+    });
+  }
+  else {
+    res.status(400);
     res.send({'error': 'Invalid ID provided. Please try again with a valid ID'});
   }
 };
@@ -189,11 +210,10 @@ UserController.addUserProfileFields = (req, res) => {
  */
 UserController.fetchEventList = (req, res, callback) => {
 
-  User.findOne({_id: ObjectId(req.params.user)},
+  User.findOne({_id: ObjectID(req.params.user)},
     {
       _id: 0,
-      AttendeeEventID: 1,
-      AdminEventID: 1
+      Events: 1
     }, (err, user) => {
       if (err) {
         console.log(err);
@@ -204,46 +224,225 @@ UserController.fetchEventList = (req, res, callback) => {
         res.status(404);
         res.send({'error': 'The user you are looking for does not exist'});
         callback(null);
-      } else if ((user.AdminEventID === null || user.AdminEventID.length < 1) &&
-        (user.AttendeeEventID === null || user.AttendeeEventID.length < 1)) {
+      } else if (user.Events === null || user.Events.length < 1) {
         res.status(404);
         res.send({'error': 'The user is not a member of an event'});
         callback(null);
       } else {
-        callback({
-          "AdminEventID": user.AdminEventID,
-          "AttendeeEventID": user.AttendeeEventID
-        });
+
+        var AdminEventIDs  = [], AttendeeEventIDs = [];
+
+        //ZKH - Extract event Ids from Admin/Attendee Events array
+        var extractEventIDs = (events) => {
+
+          return new Promise((resolve, reject) => {
+
+            for(let i = 0; i < events.length; i++){
+              if(events[i].Role === "Admin"){
+                AdminEventIDs.push(events[i].EventID);
+              }
+              else if(events[i].Role === "Attendee"){
+                AttendeeEventIDs.push(events[i].EventID);
+              }
+              else{
+                reject();
+              }
+
+              if(i === events.length - 1){
+                resolve();
+              }
+            }
+          });
+        };
+
+        extractEventIDs(user.Events)
+          .then(() => {
+          callback({
+            AdminEventID: AdminEventIDs,
+            AttendeeEventID: AttendeeEventIDs
+          });
+        })
+          .catch(() => {
+            res.status(500).end();
+          });
       }
     }
   );
 };
 
+/**
+ * Register ChatID in AdminEventID / AttendeeEventID
+ * @param {String} eventID
+ * @param {Object} chatData
+ * @return Promise
+ */
+UserController.registerChatID = (eventID, chatData) => {
+
+  return new Promise((resolve, reject) => {
+
+    for(let i = 0; i < chatData.Participants.length; i++){
+      User.findOneAndUpdate({"_id": chatData.Participants[i], "Events": { $elemMatch: {"EventID" : ObjectID(eventID)}}},
+        {$push: {"Events.$.ChatIDs": ObjectID(chatData.ChatID.toString())}},
+        {new: true},
+        (err, user) => {
+          if (err) {
+            reject({'StatusCode' : 404 , 'Status' : err.toString()});
+          }
+          else if (user === null){
+            reject({'StatusCode' : 404 , 'Status' : 'Users not found'});
+          }
+          else{
+            if(i === chatData.Participants.length - 1){
+              resolve({'StatusCode' : 200 , 'Status' : {'ChatID': chatData.ChatID.toString()}});
+            }
+          }
+        });
+    }
+
+  });
+
+};
 
 /**
  * Add Event ID in AdminEventID in the User model
  * @param {request} req incoming request
  * @param {response} res callback response
  * @param {ObjectID} eventID Object ID as referenced in the DB
- * @param  {Bool} isAdminID Is the user admin?
- * @return {void} or error
+ * @param  {Boolean} isAdmin Is the user admin?
+ * @return Promise
  */
-UserController.registerAdminID = (req, res, eventID, isAdminID) => {
-  User.findOneAndUpdate({_id: ObjectId(req.body.UserId)},
-    {$push: {userType: eventID.toString()}},
-    {new: true},
-    (err, user) => {
-      if (err) {
-        console.log(err);
-        res.status(404);
-        res.send({'error': err.toString()});
-      }
-      res.status(200);
-      res.send({'valid': 'true'});
-    }
-  );
+UserController.registerEventID = (userID, eventID, isAdmin) => {
+
+  return new Promise((resolve, reject) => {
+
+      User.findOneAndUpdate({_id: ObjectID(userID.toString())},
+        {$push: {Events: {EventID: ObjectID(eventID.toString()), Role: isAdmin ? "Admin" : "Attendee"}}},
+        {new: true},
+        (err, user) => {
+          if (err) {
+            console.log(err);
+            reject({'StatusCode' : 404, 'Status': err.toString()});
+          }
+          else if(user === null || user === undefined){
+            reject({'StatusCode' : 404, 'Status':  'User not found'});
+          }
+          else{
+            resolve({'StatusCode' : 200, 'Status' : {'EventID' : eventID}});
+          }
+        }
+      );
+  });
 };
 
+/**
+ * Fetch User(s) details
+ * @param {Array} userIDs
+ * @return Promise
+ */
+UserController.fetchUserDetails = (userIDs, filter) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.find({'_id' : {$in : userIDs}},
+      filter,
+      (err, users) => {
+        if (err) {
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        }
+        else if(users.length < 1){
+          reject({'StatusCode' : 404, 'Status':  'User not found'});
+        }
+        else{
+          resolve(users);
+        }
+      });
+  });
+};
+
+/**
+ * Fetch Chat Participant(s) details
+ * @param {Array} chats
+ * @return Promise
+ */
+UserController.fetchChatParticipantDetails = (chats) => {
+
+  return new Promise((resolve, reject) => {
+    var responseObject = [], counter = 0;
+    var setResponseObject = (data) => {
+      counter++;
+      responseObject.push(data);
+      if(counter == chats.length - 1){
+        resolve(responseObject);
+      }
+    };
+    for(let i = 0; i < chats.length; i++){
+      User.find({'_id' : {$in : chats[i].Participants}},
+        {
+          FirstName: 1,
+          LastName: 1
+        },
+        (err, users) => {
+          if (err) {
+            reject({'StatusCode' : 404, 'Status': err.toString()});
+          }
+          else if(users.length < 1){
+            reject({'StatusCode' : 404, 'Status':  'User not found'});
+          }
+          else{
+
+            setResponseObject({
+              ChatID: chats[i]._id,
+              MessageCount: chats[i].MessageCount,
+              Participants: users
+            });
+
+          }
+        });
+    }
+
+  });
+
+
+
+};
+/**
+ * Fetch User details
+ * @param {String} userID
+ * @param {String} eventID
+ * @return Promise
+ */
+UserController.fetchUserChats = (userID, eventID) => {
+
+  return new Promise((resolve, reject) => {
+
+    User.findOne({'_id' :  userID},
+      {
+        _id: 0,
+        Events: 1
+      },
+      (err, user) => {
+        if (err) {
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        }
+        else if(user == null || user == undefined){
+          reject({'StatusCode' : 404, 'Status':  'User not found'});
+        }
+        else{
+          for(let i = 0; i < user.Events.length; i++ ){
+
+            if( user.Events[i].EventID.toString() == eventID){
+              user.Events[i].ChatIDs.length > 0 ? resolve(user.Events[i].ChatIDs) : reject({'StatusCode' : 404, 'Status' : 'No Chats are available for this event'});
+              break;
+            }
+
+            if(i == user.Events.length - 1){
+              reject({'StatusCode' : 404, 'Status':  'Event not found'});
+            }
+          }
+        }
+      });
+  });
+} ;
 
 //ZKH - ****TESTING CONTROLLERS****
 
