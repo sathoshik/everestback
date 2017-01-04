@@ -431,7 +431,7 @@ UserController.fetchUserChats = (userID, eventID) => {
           for(let i = 0; i < user.Events.length; i++ ){
 
             if( user.Events[i].EventID.toString() == eventID){
-              resolve(user.Events[i].ChatIDs);
+              user.Events[i].ChatIDs.length > 0 ? resolve(user.Events[i].ChatIDs) : reject({'StatusCode' : 404, 'Status' : 'No Chats are available for this event'});
               break;
             }
 
