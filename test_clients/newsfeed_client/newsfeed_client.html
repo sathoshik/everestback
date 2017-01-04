@@ -17,12 +17,12 @@
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
 	$( document ).ready(function() {
-  var socket = io();
-      var event_id = "584101b5b2483a57256bdf16";
+  var socket = io("/newsfeed");
+      var event_id = "586c335c615c3466fd132cf8";
 
-      var user_id = "583b5f0b9a64391584e4b4ad";
+      var user_id = "5867f28222f2851db635bda7";
 
-      var newsfeed_id = "584101b5b2483a57256bdf17";
+      var newsfeed_id = "586c335c615c3466fd132cf9";
 
       var subscriptionData = {
         user_id: user_id,
@@ -36,13 +36,13 @@
 
   $('form').submit(function(){
     socket.emit('add newsfeed post', {
-      room: newsfeed_id,
       post:$('#m').val(),
       user_id: user_id,
       event_id: event_id,
-      firstName: "test",
+      firstName: "Zain",
       lastName: "test",
-      profilePicURL: "google"
+      profilePicURL: "public/uploads/file-1483228267683.png",
+      timeStamp: new Date().toISOString()
     }, (responseMessage) => {
 
       console.log(responseMessage);
