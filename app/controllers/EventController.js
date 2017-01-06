@@ -382,6 +382,18 @@ EventController.registerUserID = (eventID, userID, isAdmin, userKey) => {
 
 //ZKH - ****TESTING CONTROLLERS****
 
+/**
+ * Get all events in the platform
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return {Events} respond with an json hash of events
+ */
+EventController.testingGetAllEvents = function (req, res) {
+  Event.find({}, function (err, events) {
+    res.send(events);
+  });
+};
+
 
 /**
  * Create a testing event & newsfeed object without image upload

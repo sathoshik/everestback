@@ -429,6 +429,17 @@ router.get('/testing/getAllUsers', function (req, res) {
 
 
 /**
+ * Get all events api end point at {ip}:3000/testing/getAllEvents
+ * @param {request} req incoming request
+ * @param {response} res callback response
+ * @return Json hash of events or error
+ */
+router.get('/testing/getAllEvents', function (req, res) {
+  eventController.testingGetAllEvents(req, res);
+});
+
+
+/**
  * Newsfeed testing page end point at {ip}:3000/testing/newsfeed
  * @param {request} req incoming request
  * @param {response} res callback response
