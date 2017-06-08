@@ -1,0 +1,7 @@
+version: "1"
+services:
+  mongodb:
+  npm:
+  grunt:
+  web:
+
