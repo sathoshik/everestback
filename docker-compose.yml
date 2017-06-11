@@ -1,7 +1,20 @@
-version: "1"
+version: "2"
 services:
-  mongodb:
-  npm:
-  grunt:
+  mongo:
+    image: mongo:3.2
+    ports:
+      - "27017:27017"
   web:
+    build:
+      context: .
+      dockerfile: ./docker/core/Dockerfile
+    command: node server --use_strict
+    ports:
+      - '80:80'
+    depends_on:
+      - mongo
+    volumes:
+      - .:/usr/app/
+    env_file: .env
+
 

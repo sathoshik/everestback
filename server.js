@@ -25,7 +25,7 @@ app.use('/', router);
 app.use('/public', express.static('public'));
 
 //ZKH - Connection URL
-var url = 'mongodb://localhost:27017/EverestBack';
+var url = 'mongodb://mongo/EverestBack';
 
 //ZKH - Connect Mongoose
 mongoose.Promise = global.Promise;
@@ -35,8 +35,8 @@ mongoose.connect(url, function(err) {
 });
 
 //ZKH - Connecting the Node server to port 3000
-http.listen(3000, function(){
-	console.log('listening on *:3000');
+http.listen(80, function(){
+	console.log('listening on :80');
 	socketLogic.socketBroker(io, (msg) => {
 		console.log(msg);
 	});
