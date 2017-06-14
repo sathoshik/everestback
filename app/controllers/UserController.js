@@ -9,28 +9,10 @@ var fs = require('fs');
 var mongoose = require('mongoose');
 var ObjectID = require('mongodb').ObjectID;
 
-
-/**
- * User mongoose model initializer
- * @constructor
- * @param {User}
- */
 var User = mongoose.model('User');
 
-
-/**
- * UserController Initializer
- * @constructor
- */
 var UserController = this;
 
-
-/**
- * Check whether the given email address and password are valid. If valid, return user_id
- * @param {request} req incoming request
- * @param {response} res callback response
- * @return {ObjectID} respond with user._id or error
- */
 UserController.signInUser = (req, res) => {
   if (req.body.Email !== null && req.body.Email !== '' &&
     req.body.Password !== null && req.body.Password !== '') {
@@ -71,14 +53,7 @@ UserController.signInUser = (req, res) => {
   }
 };
 
-
 //SKU - Should we safe guard against extra parameters that could be sent?
-/**
- * Add User object to users collections
- * @param {request} req incoming request
- * @param {response} res callback response
- * @return {ObjectID} Respond with user._id or error
- */
 UserController.createNewUser = (req, res) => {
   //SKU - Initialize User object with associated with mongoose model.
   var user = new User(req.body);
@@ -103,17 +78,12 @@ UserController.createNewUser = (req, res) => {
   }
 };
 
-
-/**
- * Add additional fields to the User object already created in users collections
- * @param {request} req incoming request
- * @param {response} res callback response
- * @return {status} respond with 200 or error
- */
 UserController.addUserProfileFields = (req, res) => {
 
   //SKU - If the URL has the correct parameter, return object..
-  if (req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "true") {
+  if (req.query.id !== null &&
+    req.query.id.length == 24 &&
+    req.query.isImageSet == "true") {
 
     imageUploader(req, res, (err) => {
 
@@ -167,8 +137,9 @@ UserController.addUserProfileFields = (req, res) => {
           }
         });
     });
-  }
-  else if(req.query.id !== null && req.query.id.length == 24 && req.query.isimageset == "false"){
+  } else if (req.query.id !== null &&
+    req.query.id.length == 24 &&
+    req.query.isimageset == "false") {
 
     var user = new User(req.body);
     user.ProfileImageURL = null;
@@ -192,22 +163,12 @@ UserController.addUserProfileFields = (req, res) => {
         res.send({'ProfileImageURL': user.ProfileImageURL});
       }
     });
-  }
-  else {
+  } else {
     res.status(400);
     res.send({'error': 'Invalid ID provided. Please try again with a valid ID'});
   }
 };
 
-
-/*jshint unused:false*/
-/**
- * Fetch For Eventlists The User Is Part Of
- * @param {request} req incoming request
- * @param {response} res callback response
- * @param {function} callback Function of type eventList => {...} callback
- * @return {void}
- */
 UserController.fetchEventList = (req, res, callback) => {
 
   User.findOne({_id: ObjectID(req.params.user)},
@@ -230,7 +191,7 @@ UserController.fetchEventList = (req, res, callback) => {
         callback(null);
       } else {
 
-        var AdminEventIDs  = [], AttendeeEventIDs = [];
+        var AdminEventIDs = [], AttendeeEventIDs = [];
 
         //ZKH - Extract event Ids from Admin/Attendee Events array
         var extractEventIDs = (events) => {
@@ -238,17 +199,15 @@ UserController.fetchEventList = (req, res, callback) => {
           return new Promise((resolve, reject) => {
 
             for(let i = 0; i < events.length; i++){
-              if(events[i].Role === "Admin"){
+              if (events[i].Role === "Admin") {
                 AdminEventIDs.push(events[i].EventID);
-              }
-              else if(events[i].Role === "Attendee"){
+              } else if (events[i].Role === "Attendee") {
                 AttendeeEventIDs.push(events[i].EventID);
-              }
-              else{
+              } else {
                 reject();
               }
 
-              if(i === events.length - 1){
+              if (i === events.length - 1) {
                 resolve();
               }
             }
@@ -257,11 +216,11 @@ UserController.fetchEventList = (req, res, callback) => {
 
         extractEventIDs(user.Events)
           .then(() => {
-          callback({
-            AdminEventID: AdminEventIDs,
-            AttendeeEventID: AttendeeEventIDs
-          });
-        })
+            callback({
+              AdminEventID: AdminEventIDs,
+              AttendeeEventID: AttendeeEventIDs
+            });
+          })
           .catch(() => {
             res.status(500).end();
           });
@@ -270,75 +229,53 @@ UserController.fetchEventList = (req, res, callback) => {
   );
 };
 
-/**
- * Register ChatID in AdminEventID / AttendeeEventID
- * @param {String} eventID
- * @param {Object} chatData
- * @return Promise
- */
 UserController.registerChatID = (eventID, chatData) => {
 
   return new Promise((resolve, reject) => {
 
     for(let i = 0; i < chatData.Participants.length; i++){
-      User.findOneAndUpdate({"_id": chatData.Participants[i], "Events": { $elemMatch: {"EventID" : ObjectID(eventID)}}},
-        {$push: {"Events.$.ChatIDs": ObjectID(chatData.ChatID.toString())}},
-        {new: true},
+      User.findOneAndUpdate({ "_id": chatData.Participants[i],
+        "Events": { $elemMatch: { "EventID" : ObjectID(eventID) } } },
+        { $push: { "Events.$.ChatIDs": ObjectID(chatData.ChatID.toString()) } },
+        { new: true },
         (err, user) => {
           if (err) {
             reject({'StatusCode' : 404 , 'Status' : err.toString()});
-          }
-          else if (user === null){
+          } else if (user === null) {
             reject({'StatusCode' : 404 , 'Status' : 'Users not found'});
-          }
-          else{
+          } else {
             if(i === chatData.Participants.length - 1){
-              resolve({'StatusCode' : 200 , 'Status' : {'ChatID': chatData.ChatID.toString()}});
+              resolve({'StatusCode' : 200 ,
+                'Status' : {'ChatID': chatData.ChatID.toString()}});
             }
           }
         });
     }
-
   });
-
 };
 
-/**
- * Add Event ID in AdminEventID in the User model
- * @param {request} req incoming request
- * @param {response} res callback response
- * @param {ObjectID} eventID Object ID as referenced in the DB
- * @param  {Boolean} isAdmin Is the user admin?
- * @return Promise
- */
 UserController.registerEventID = (userID, eventID, isAdmin) => {
 
   return new Promise((resolve, reject) => {
 
-      User.findOneAndUpdate({_id: ObjectID(userID.toString())},
-        {$push: {Events: {EventID: ObjectID(eventID.toString()), Role: isAdmin ? "Admin" : "Attendee"}}},
-        {new: true},
-        (err, user) => {
-          if (err) {
-            console.log(err);
-            reject({'StatusCode' : 404, 'Status': err.toString()});
-          }
-          else if(user === null || user === undefined){
-            reject({'StatusCode' : 404, 'Status':  'User not found'});
-          }
-          else{
-            resolve({'StatusCode' : 200, 'Status' : {'EventID' : eventID}});
-          }
+    User.findOneAndUpdate({_id: ObjectID(userID.toString())},
+      { $push: { Events: { EventID: ObjectID(eventID.toString()),
+        Role: isAdmin ? "Admin" : "Attendee" } } },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          console.log(err);
+          reject({'StatusCode' : 404, 'Status': err.toString()});
+        } else if (user === null || user === undefined) {
+          reject({'StatusCode' : 404, 'Status':  'User not found'});
+        } else {
+          resolve({'StatusCode' : 200, 'Status' : {'EventID' : eventID}});
         }
-      );
+      }
+    );
   });
 };
 
-/**
- * Fetch User(s) details
- * @param {Array} userIDs
- * @return Promise
- */
 UserController.fetchUserDetails = (userIDs, filter) => {
 
   return new Promise((resolve, reject) => {
@@ -348,22 +285,15 @@ UserController.fetchUserDetails = (userIDs, filter) => {
       (err, users) => {
         if (err) {
           reject({'StatusCode' : 404, 'Status': err.toString()});
-        }
-        else if(users.length < 1){
+        } else if (users.length < 1) {
           reject({'StatusCode' : 404, 'Status':  'User not found'});
-        }
-        else{
+        } else {
           resolve(users);
         }
       });
   });
 };
 
-/**
- * Fetch Chat Participant(s) details
- * @param {Array} chats
- * @return Promise
- */
 UserController.fetchChatParticipantDetails = (chats) => {
 
   return new Promise((resolve, reject) => {
@@ -371,11 +301,11 @@ UserController.fetchChatParticipantDetails = (chats) => {
     var setResponseObject = (data) => {
       counter++;
       responseObject.push(data);
-      if(counter == chats.length - 1){
+      if (counter == chats.length - 1) {
         resolve(responseObject);
       }
     };
-    for(let i = 0; i < chats.length; i++){
+    for(let i = 0; i < chats.length; i++) {
       User.find({'_id' : {$in : chats[i].Participants}},
         {
           FirstName: 1,
@@ -384,33 +314,20 @@ UserController.fetchChatParticipantDetails = (chats) => {
         (err, users) => {
           if (err) {
             reject({'StatusCode' : 404, 'Status': err.toString()});
-          }
-          else if(users.length < 1){
+          } else if(users.length < 1){
             reject({'StatusCode' : 404, 'Status':  'User not found'});
-          }
-          else{
-
+          } else{
             setResponseObject({
               ChatID: chats[i]._id,
               MessageCount: chats[i].MessageCount,
               Participants: users
             });
-
           }
         });
     }
-
   });
-
-
-
 };
-/**
- * Fetch User details
- * @param {String} userID
- * @param {String} eventID
- * @return Promise
- */
+
 UserController.fetchUserChats = (userID, eventID) => {
 
   return new Promise((resolve, reject) => {
@@ -423,15 +340,18 @@ UserController.fetchUserChats = (userID, eventID) => {
       (err, user) => {
         if (err) {
           reject({'StatusCode' : 404, 'Status': err.toString()});
-        }
-        else if(user == null || user == undefined){
+        } else if(user == null || user == undefined){
           reject({'StatusCode' : 404, 'Status':  'User not found'});
-        }
-        else{
+        } else{
           for(let i = 0; i < user.Events.length; i++ ){
 
-            if( user.Events[i].EventID.toString() == eventID){
-              user.Events[i].ChatIDs.length > 0 ? resolve(user.Events[i].ChatIDs) : reject({'StatusCode' : 404, 'Status' : 'No Chats are available for this event'});
+            if (user.Events[i].EventID.toString() == eventID) {
+              if (user.Events[i].ChatIDs.length > 0) {
+                resolve(user.Events[i].ChatIDs);
+              } else {
+                reject({'StatusCode' : 404,
+                  'Status' : 'No Chats are available for this event'});
+              }
               break;
             }
 
@@ -445,26 +365,12 @@ UserController.fetchUserChats = (userID, eventID) => {
 } ;
 
 //ZKH - ****TESTING CONTROLLERS****
-
-
-/**
- * Get all users in the platform
- * @param {request} req incoming request
- * @param {response} res callback response
- * @return {User} respond with an json hash of users
- */
 UserController.testingGetAllUsers = function (req, res) {
   User.find({}, function (err, users) {
     res.send(users);
   });
 };
 
-
 //ZKH - ****END TESTING CONTROLLERS****
 
-
-/**
- * Add UserController to global module object
- * @constructor
- */
 module.exports = UserController;

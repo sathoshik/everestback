@@ -2,3 +2,5 @@ data
 .idea
 public
 node_modules
+*.pem
+aws-start.sh

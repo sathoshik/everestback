@@ -4,7 +4,6 @@ var chatController = require('../controllers/ChatController');
 
 /**
  * Invoked upon successfully initializing the server-side socket
- * @param {Object} io (Server side io stream)
  * @return {emit} Emit information back to all connected clients.
  */
 exports.setChatSocket = (io) => {
@@ -14,14 +13,8 @@ exports.setChatSocket = (io) => {
 
   //ZKH - Socket-io Connection
   nsp.on('connection', function (socket) {
-    //ZKH - Perform Chat Logic Here
-
-    //ZKH - Chat Subscribe
 
     /** Subscribing to a Chat
-     * @param {Object} data
-     * @param {Function} callback
-     * @return callback
      */
     socket.on('chat subscribe', function (data, callback) {
       eventController.checkIfUserIsPartOfEvent(data.EventID, data.UserID, null, false,
@@ -46,8 +39,6 @@ exports.setChatSocket = (io) => {
      * ProfileImageURL: {String},
      * Message: {String},
      * TimeStamp: {Date}}
-     * @param {Function} callback
-     * @return callback
      */
     socket.on('add chat message', function (data, callback) {
       chatController.createMessage(data)

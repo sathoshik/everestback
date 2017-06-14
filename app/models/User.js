@@ -7,7 +7,6 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
 
-
 /**
  * Define salt work factor.
  * Work Factor is defined as the amount of effort (usually measured in units of time)
@@ -16,10 +15,8 @@ var Schema = mongoose.Schema;
  */
 const SALT_WORK_FACTOR = 13;
 
-
 /**
  * Define User Schema
- *
  */
 var userSchema = new Schema({
   "Email": {type: String, required: true, index: {unique: true}},
@@ -37,10 +34,8 @@ var userSchema = new Schema({
   }]
 });
 
-
 /**
  * Upon initialization of User, Hash and salt password.
- *
  */
 userSchema.pre('save', function (next) {
   let user = this;
@@ -62,12 +57,8 @@ userSchema.pre('save', function (next) {
   });
 });
 
-
 /**
  * Compare requested password with the salted and hashed password in the db
- * @param {string} requestPassword Password that is being compared
- * @param {function} callBack Call back function to propagate result
- * @return {function} callBack or isMatch = true/false
  */
 userSchema.methods.comparePassword = function (requestPassword, callBack) {
   bcrypt.compare(requestPassword, this.Password, (err, isMatch) => {
@@ -76,11 +67,5 @@ userSchema.methods.comparePassword = function (requestPassword, callBack) {
   });
 };
 
-
-/**
- * Add User Model to global mongoose model object and users collections
- * @constructor
- * @param {string} User, {Schema} userSchema
- */
 mongoose.model('User', userSchema);
 

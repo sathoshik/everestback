@@ -8,33 +8,13 @@ require('../models/ChatMessage');
 var mongoose = require('mongoose');
 var ObjectID = require('mongodb').ObjectID;
 
-/**
- * Chat mongoose model initializer
- * @constructor
- * @param {Chat}
- */
 var Chat = mongoose.model('Chat');
 
-/**
- * ChatMessage mongoose model initializer
- * @constructor
- * @param {ChatMessage}
- */
 var ChatMessage = mongoose.model('ChatMessage');
 
-/**
- * ChatController Initializer
- * @constructor
- */
 var ChatController = this;
 
-/**
- * Create a new chat instance and create a new message
- * @param {String} eventID
- * @param {Array} participants
- * @param {Object} messageData
- * @return Promise
- */
+
 ChatController.instantiateChat = (eventID, participants, messageData) => {
 
   return new Promise((resolve, reject) => {
@@ -53,15 +33,19 @@ ChatController.instantiateChat = (eventID, participants, messageData) => {
     chatMessage.ChatID = chat._id;
 
     chatMessage.save((err) => {
-      if(err){
-        return reject({'StatusCode' : 500, 'Status':  'Chat Message Instantiation Failed - '+ err.toString()});
-      }
-      else{
+      if(err) {
+        return reject({
+          'StatusCode' : 500,
+          'Status':  'Chat Message Instantiation Failed - '+ err.toString()
+        });
+      } else {
         chat.save( (err) => {
-          if(err){
-            return reject({'StatusCode' : 500, 'Status':  'Chat Instantiation Failed - '+ err.toString()});
-          }
-          else{
+          if(err) {
+            return reject({
+              'StatusCode' : 500,
+              'Status':  'Chat Instantiation Failed - '+ err.toString()
+            });
+          } else {
             return resolve({
               'ChatID': chat._id,
               'Participants' : chat.Participants
@@ -74,18 +58,6 @@ ChatController.instantiateChat = (eventID, participants, messageData) => {
   });
 };
 
-/**
- * Create a new message
- * @param {Object} messageData
- * {ChatID: {String},
-  * UserID: {String},
-  * FirstName: {String},
-  * LastName: {String},
-  * ProfileImageURL: {String},
-  * Message: {String},
-  * TimeStamp: {Date}}
- * @return Promise
- */
 ChatController.createMessage = (messageData) => {
 
   return new Promise((resolve, reject) => {
@@ -94,16 +66,16 @@ ChatController.createMessage = (messageData) => {
       {$inc: {MessageCount: 1}},
       {new: true},
       (err, chat) => {
-        if(err){
-         return reject({'error' : err.toString()});
-        }
-        else if(chat == null || chat == undefined){
-         return reject({'error' : 'Chat object could not be found'});
-        }
-        else{
-          var chatMessage = new ChatMessage(Object.assign({}, messageData, {MessageNumber: chat.MessageCount}));
+        if(err) {
+          return reject({'error' : err.toString()});
+        } else if (chat == null || chat == undefined) {
+          return reject({'error' : 'Chat object could not be found'});
+        } else {
+          var chatMessage = new ChatMessage(Object.assign({},
+                                            messageData,
+                                            {MessageNumber: chat.MessageCount}));
           chatMessage.save((err, newDoc) => {
-            if(err){
+            if(err) {
               chat.MessageCount--;
               chat.save();
               return reject({'error' : err.toString()});
@@ -115,11 +87,6 @@ ChatController.createMessage = (messageData) => {
   });
 };
 
-/**
- * Fetch chat(s) details
- * @param {Array} chatIDs
- * @return Promise
- */
 ChatController.fetchChatDetails = (chatIDs, filter) => {
 
   return new Promise((resolve, reject) => {
@@ -129,11 +96,9 @@ ChatController.fetchChatDetails = (chatIDs, filter) => {
       (err, chats) => {
         if(err){
           reject({'error' : err.toString()});
-        }
-        else if(chats.length < 1){
+        } else if (chats.length < 1) {
           reject({'error' : 'Chat object could not be found'});
-        }
-        else{
+        } else {
           resolve(chats);
         }
       });
@@ -141,11 +106,6 @@ ChatController.fetchChatDetails = (chatIDs, filter) => {
 };
 
 
-/**
- * Fetch Latest Message per chat with Participants
- * @param {Array} chatData
- * @return Promise
- */
 ChatController.fetchLatestMessageWithParticipants = (chatData) => {
 
   return new Promise((resolve, reject) => {
@@ -158,21 +118,19 @@ ChatController.fetchLatestMessageWithParticipants = (chatData) => {
       }
     };
 
-    for(let i = 0; i < chatData.length; i++){
-      ChatMessage.findOne({$and: [{"ChatID" : chatData[i].ChatID}, {"MessageNumber" : {$eq: chatData[i].MessageCount}}]},
+    for(let i = 0; i < chatData.length; i++) {
+      ChatMessage.findOne({ $and: [{ "ChatID" : chatData[i].ChatID },
+          { "MessageNumber" : { $eq: chatData[i].MessageCount } }] },
         {
           _id: 0,
           ChatID: 0
         },
         (err, message) => {
-          if(err){
-            reject({'StatusCode': 404,'Status' : err.toString()});
-          }
-          else if(!message){
-            reject({'StatusCode': 404,'Status' : "Message not found"});
-          }
-          else{
-
+          if(err) {
+            reject({ 'StatusCode': 404,'Status' : err.toString() });
+          } else if (!message) {
+            reject({ 'StatusCode': 404,'Status' : "Message not found" });
+          } else {
             setMessagesAndParticipants({
               ChatID: chatData[i].ChatID,
               Participants: chatData[i].Participants,
@@ -184,51 +142,35 @@ ChatController.fetchLatestMessageWithParticipants = (chatData) => {
   });
 };
 
-/**
- * Check if user is part of chat
- * @param {String} userID
- * @param {String} chatID
- * @return Promise
- */
 ChatController.isUserPartOfChat = (userID, chatID) => {
 
   return new Promise((resolve, reject) => {
     Chat.findOne({$and:[{'_id': chatID}, {'Participants': {$in: [userID]}}]},
       {},
       (err, chat) => {
-        if(err){
+        if(err) {
           reject({'StatusCode': 404,'Status' : err.toString()});
-        }
-        else if(!chat){
+        } else if (!chat) {
           resolve(false);
-        }
-        else{
+        } else {
           resolve(true);
         }
       });
   });
 };
 
-/**
- * Fetch delta messages
- * @param {String} chatID
- * @param {String} upperBound
- * @param {String} lowerBound
- * @return Promise
- */
 ChatController.fetchDeltaMessages = (chatID, lowerBound, upperBound) => {
 
   return new Promise((resolve, reject) => {
-    ChatMessage.find({$and:[{'ChatID': chatID}, {'MessageNumber': {$gte: lowerBound, $lte: upperBound}}]},
+    ChatMessage.find({ $and:[{ 'ChatID': chatID },
+        { 'MessageNumber': { $gte: lowerBound, $lte: upperBound } }] },
       {},
       (err, messages) => {
-        if(err){
+        if(err) {
           reject({'StatusCode': 404,'Status' : err.toString()});
-        }
-        else if(messages.length < 1){
+        } else if (messages.length < 1) {
           reject({'StatusCode': 404,'Status' : 'Messages not found'});
-        }
-        else{
+        } else {
           resolve(messages);
         }
       });
