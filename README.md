@@ -21,11 +21,16 @@ SETUP DEV LINTING ENV
 1. npm install npm install grunt-cli -g
 
 Quick Daily Environment setup:
-1. open terminal 
-2. Run "$ chmod a+x ./QuickDevDB.sh" *Only required the first time you do this, otherwise just skip to step 3*
-3. Run "$ sh ./QuickDevDB.sh"
-4. open a new terminal
-5. Run "$ node server"
+1. Install Docker.
+2. Change your directory to the Repo.
+3. Open terminal
+4. npm i 
+5. docker-compose build
+6. docker-compose -up d
+     
+Your local server should now be running at localhost.
+
+If you want to get fancy, you add 127.0.0.1 everestdev.com www.everestdev.com to override /etc/hosts
 
 BEFORE PUSHING CODE:
 grunt jslint
