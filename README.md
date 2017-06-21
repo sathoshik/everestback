@@ -38,5 +38,7 @@ grunt jslint
 
 grunt eslint
 => Fix errors
-
+     
+Keep in mind that Jenkins will not allow merging unless all linting errors are fixed
+     
 Das it!
