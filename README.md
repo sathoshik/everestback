@@ -1,3 +1,4 @@
+@ Deprecated     
 Instructions on Initializing the EverestBack repo:
 1. cd into the current directory in terminal
 2. Run "$ npm install"
