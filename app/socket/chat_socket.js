@@ -7,25 +7,24 @@ var chatController = require('../controllers/ChatController');
  * @return {emit} Emit information back to all connected clients.
  */
 exports.setChatSocket = (io) => {
-
-  //ZKH - Creating a Chat Namespace
+  // ZKH - Creating a Chat Namespace
   var nsp = io.of('/chat');
 
-  //ZKH - Socket-io Connection
-  nsp.on('connection', function (socket) {
-
-    /** Subscribing to a Chat
+  // ZKH - Socket-io Connection
+  nsp.on('connection', function(socket) {
+    /**
+     * Subscribing to a Chat
      */
-    socket.on('chat subscribe', function (data, callback) {
+    socket.on('chat subscribe', function(data, callback) {
       eventController.checkIfUserIsPartOfEvent(data.EventID, data.UserID, null, false,
         (userIsPartOfEvent) => {
           if (userIsPartOfEvent) {
             let room = data.ChatID;
             console.log(data.UserID, 'is joining room', room);
             socket.join(room);
-            return callback({'valid': true});
+            return callback({ 'valid': true });
           } else {
-            return callback({'valid': false});
+            return callback({ 'valid': false });
           }
         });
     });
@@ -40,10 +39,10 @@ exports.setChatSocket = (io) => {
      * Message: {String},
      * TimeStamp: {Date}}
      */
-    socket.on('add chat message', function (data, callback) {
+    socket.on('add chat message', function(data, callback) {
       chatController.createMessage(data)
         .then((chatMessage) => {
-          //ZKH - data.ChatID keeps each chat on the platform seperate
+          // ZKH - data.ChatID keeps each chat on the platform seperate
           nsp.in(data.ChatID).emit('new chat message',
             {
               ChatID: chatMessage.ChatID,
@@ -56,17 +55,15 @@ exports.setChatSocket = (io) => {
               TimeStamp: chatMessage.TimeStamp
             }
           );
-          return callback({'valid' : true});
+          return callback({ 'valid': true });
         })
         .catch((err) => {
-          return callback({'valid' : false, 'status' : err.error});
+          return callback({ 'valid': false, 'status': err.error });
         });
     });
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function() {
       console.log('user disconnected');
     });
-
   });
 };
-

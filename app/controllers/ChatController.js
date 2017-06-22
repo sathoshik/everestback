@@ -16,9 +16,7 @@ var ChatController = this;
 
 
 ChatController.instantiateChat = (eventID, participants, messageData) => {
-
   return new Promise((resolve, reject) => {
-
     var chat = new Chat({
       EventID: eventID,
       Participants: participants,
@@ -27,7 +25,7 @@ ChatController.instantiateChat = (eventID, participants, messageData) => {
 
     var chatMessage = new ChatMessage(messageData);
 
-    //ZKH - First message in the chat
+    // ZKH - First message in the chat
     chatMessage.MessageNumber = 1;
 
     chatMessage.ChatID = chat._id;
@@ -54,50 +52,45 @@ ChatController.instantiateChat = (eventID, participants, messageData) => {
         });
       }
     });
-
   });
 };
 
 ChatController.createMessage = (messageData) => {
-
   return new Promise((resolve, reject) => {
-
-    Chat.findOneAndUpdate({_id: ObjectID(messageData.ChatID)},
-      {$inc: {MessageCount: 1}},
-      {new: true},
+    Chat.findOneAndUpdate({ _id: ObjectID(messageData.ChatID) },
+      { $inc: { MessageCount: 1 } },
+      { new: true },
       (err, chat) => {
         if(err) {
-          return reject({'error' : err.toString()});
+          return reject({ 'error': err.toString() });
         } else if (chat == null || chat == undefined) {
-          return reject({'error' : 'Chat object could not be found'});
+          return reject({ 'error': 'Chat object could not be found' });
         } else {
           var chatMessage = new ChatMessage(Object.assign({},
                                             messageData,
-                                            {MessageNumber: chat.MessageCount}));
+                                            { MessageNumber: chat.MessageCount }));
           chatMessage.save((err, newDoc) => {
             if(err) {
               chat.MessageCount--;
               chat.save();
-              return reject({'error' : err.toString()});
+              return reject({ 'error': err.toString() });
             }
             return resolve(chatMessage);
-          })
+          });
         }
       });
   });
 };
 
 ChatController.fetchChatDetails = (chatIDs, filter) => {
-
   return new Promise((resolve, reject) => {
-
-    Chat.find({_id: {$in: chatIDs}},
+    Chat.find({ _id: { $in: chatIDs } },
       filter,
       (err, chats) => {
-        if(err){
-          reject({'error' : err.toString()});
+        if(err) {
+          reject({ 'error': err.toString() });
         } else if (chats.length < 1) {
-          reject({'error' : 'Chat object could not be found'});
+          reject({ 'error': 'Chat object could not be found' });
         } else {
           resolve(chats);
         }
@@ -107,29 +100,30 @@ ChatController.fetchChatDetails = (chatIDs, filter) => {
 
 
 ChatController.fetchLatestMessageWithParticipants = (chatData) => {
-
   return new Promise((resolve, reject) => {
-    var messagesAndParticipants = [], counter = 0;
+    var messagesAndParticipants = [];
+    var counter = 0;
+
     var setMessagesAndParticipants = (data) => {
       counter++;
       messagesAndParticipants.push(data);
-      if(counter == chatData.length - 1){
+      if(counter == chatData.length - 1) {
         resolve(messagesAndParticipants);
       }
     };
 
     for(let i = 0; i < chatData.length; i++) {
-      ChatMessage.findOne({ $and: [{ "ChatID" : chatData[i].ChatID },
-          { "MessageNumber" : { $eq: chatData[i].MessageCount } }] },
+      ChatMessage.findOne({ $and: [{ 'ChatID' : chatData[i].ChatID },
+          { 'MessageNumber' : { $eq: chatData[i].MessageCount } }] },
         {
           _id: 0,
           ChatID: 0
         },
         (err, message) => {
           if(err) {
-            reject({ 'StatusCode': 404,'Status' : err.toString() });
+            reject({ 'StatusCode': 404, 'Status': err.toString() });
           } else if (!message) {
-            reject({ 'StatusCode': 404,'Status' : "Message not found" });
+            reject({ 'StatusCode': 404, 'Status': 'Message not found' });
           } else {
             setMessagesAndParticipants({
               ChatID: chatData[i].ChatID,
@@ -143,13 +137,12 @@ ChatController.fetchLatestMessageWithParticipants = (chatData) => {
 };
 
 ChatController.isUserPartOfChat = (userID, chatID) => {
-
   return new Promise((resolve, reject) => {
-    Chat.findOne({$and:[{'_id': chatID}, {'Participants': {$in: [userID]}}]},
+    Chat.findOne({ $and:[{ '_id': chatID }, { 'Participants': { $in: [userID] } }] },
       {},
       (err, chat) => {
         if(err) {
-          reject({'StatusCode': 404,'Status' : err.toString()});
+          reject({ 'StatusCode': 404, 'Status': err.toString() });
         } else if (!chat) {
           resolve(false);
         } else {
@@ -160,16 +153,15 @@ ChatController.isUserPartOfChat = (userID, chatID) => {
 };
 
 ChatController.fetchDeltaMessages = (chatID, lowerBound, upperBound) => {
-
   return new Promise((resolve, reject) => {
-    ChatMessage.find({ $and:[{ 'ChatID': chatID },
+    ChatMessage.find( { $and:[{ 'ChatID': chatID },
         { 'MessageNumber': { $gte: lowerBound, $lte: upperBound } }] },
       {},
       (err, messages) => {
         if(err) {
-          reject({'StatusCode': 404,'Status' : err.toString()});
+          reject({ 'StatusCode': 404, 'Status': err.toString() });
         } else if (messages.length < 1) {
-          reject({'StatusCode': 404,'Status' : 'Messages not found'});
+          reject({ 'StatusCode': 404, 'Status': 'Messages not found' });
         } else {
           resolve(messages);
         }
