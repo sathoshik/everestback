@@ -24,11 +24,22 @@ BEFORE PUSHING CODE:
 Keep in mind that Jenkins will not allow merging unless all linting errors are fixed
      
 Love EverestBack Team
+      
+      
+Additional changes to make deving faster      
+```
+Open ~/.bash_profile and paste the following..      
 
-
-
-
-@ Deprecated
+#Everestback docker aliases ---------------------------------------------------      
+export EVERESTBACK_HOME=~/Development/everestback
+source $EVERESTBACK_HOME/scripts/docker-rails.sh
+```
+      
+You you type ```ddc build ```,```ddc up -d``` and ```ddc ps``` 
+      
+      
+      
+@ Deprecated      
 Instructions on Initializing the EverestBack repo:
 1. cd into the current directory in terminal
 2. Run "$ npm install"
