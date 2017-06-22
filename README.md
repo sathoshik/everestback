@@ -1,3 +1,4 @@
+@ Deprecated     
 Instructions on Initializing the EverestBack repo:
 1. cd into the current directory in terminal
 2. Run "$ npm install"
@@ -38,5 +39,7 @@ grunt jslint
 
 grunt eslint
 => Fix errors
-
+     
+Keep in mind that Jenkins will not allow merging unless all linting errors are fixed
+     
 Das it!

@@ -2,7 +2,7 @@
   env: {
     'node': true,
      'es6': true
-     },
+  },
   rules: {
          'no-cond-assign': 0, // eslint:recommended
          'no-debugger': 2, // eslint:recommended
@@ -19,8 +19,7 @@
          'no-new-wrappers': 2,
          'no-throw-literal': 2, // eslint:recommended
          'no-with': 2,
-
-         
+       
          // Strict Mode
          'no-undef': 1, // eslint:recommended
          'no-unused-vars': [1, {args: 'none'}], // eslint:recommended
@@ -51,7 +50,6 @@
          'space-before-function-paren': [2, 'never'],
          'spaced-comment': [2, 'always'],
          'func-style': [2, 'declaration', { 'allowArrowFunctions': true }],
-         'indent': [2,2],
-         'max-len': [2,150],
-       }
+         'indent': [2,2]
+  }
 }
