@@ -7,21 +7,8 @@ require('../models/Event');
 var mongoose = require('mongoose');
 var Event = mongoose.model('Event');
 
-
-/**
- * Add EventHelper to global module object
- * @constructor
- */
 module.exports = {
 
-
-  /**
-   * Queries The Event Model With an Array Of Events
-   * @param  {events} eventsObject
-   * @param {response} res, {() => {...}} callback
-   * @return {Object} or null
-   */
-  /* jshint loopfunc:true */
   retrieveUserEvents : (eventsObject, res, callback) => {
 
     var finalObject = {}, numberOfKeys = Object.keys(eventsObject).length, counter = 0;
@@ -94,10 +81,6 @@ module.exports = {
       }
     }
 
-    /**
-     * Called upon completion of logic checks or querying of all the data provided
-     * @return {Object} callBack function returns final Object
-     */
     var done = () => {
       if (callback) {
         callback(finalObject);

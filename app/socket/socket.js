@@ -7,18 +7,8 @@ var chatModule = require('./chat_socket');
 //ZKH - I/O stream for client-side Socket instances
 var io;
 
-/**
- * Set Module package as exports
- * @constructor
- */
 var exports = module.exports = {};
 
-/**
- * Set the socket to the module.
- * @param {connection} _io Socket connection derived from SocketIO
- * @param {function} callBack Acknowledgement call back function
- * @return {function} callBack
- */
 exports.socketBroker = (_io, callBack) => {
   if (_io !== null) {
     io = _io;

@@ -5,8 +5,6 @@ var newsfeedController = require('../controllers/NewsfeedController');
 
 /**
  * Invoked upon successfully initializing the server-side socket
- * @param {Object} io (Server side io stream)
- * @return {emit} Emit information back to all connected clients.
  */
 exports.setNewsfeedSocket = (io) => {
 
@@ -58,11 +56,9 @@ exports.setNewsfeedSocket = (io) => {
             callback({'valid': false});
           }
         });
-
     });
     socket.on('disconnect', function () {
       console.log('user disconnected');
     });
   });
 };
-
