@@ -4,7 +4,7 @@
 var newsfeedModule = require('./newsfeed_socket');
 var chatModule = require('./chat_socket');
 
-//ZKH - I/O stream for client-side Socket instances
+// ZKH - I/O stream for client-side Socket instances
 var io;
 
 var exports = module.exports = {};
@@ -14,8 +14,8 @@ exports.socketBroker = (_io, callBack) => {
     io = _io;
     newsfeedModule.setNewsfeedSocket(_io);
     chatModule.setChatSocket(_io);
-    callBack("Socket connected successfully");
+    callBack('Socket connected successfully');
   } else {
-    callBack("Socket was empty and was not connected successfully");
+    callBack('Socket was empty and was not connected successfully');
   }
 };

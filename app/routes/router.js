@@ -9,13 +9,12 @@ var imageUploader = require('../helpers/Tools').imageUploader();
 var path = require('path');
 var ObjectID = require('mongoose').Types.ObjectId;
 
-//ZKH - ******PUBLIC ROUTES******
+// ZKH - ******PUBLIC ROUTES******
 
-//ZKH - GET
-router.get('/', function (req, res) {
+// ZKH - GET
+router.get('/', (req, res) => {
   res.send('Welcome to EverestBack');
 });
-
 
 /**
  * Sign in user api end point at {ip}:3000/signInUser
@@ -30,7 +29,6 @@ router.post('/signInUser', (req, res) => {
   userController.signInUser(req, res);
 });
 
-
 /**
  * Sign up user api end point at {ip}:3000/createNewUser
  * @param {request} req incoming request
@@ -44,8 +42,7 @@ router.post('/createNewUser', (req, res) => {
   userController.createNewUser(req, res);
 });
 
-
-//SKU - This route is subject to change
+// SKU - This route is subject to change
 /**
  * Create event api end point at {ip}:3000/createEvent
  * @param {request} req incoming request
@@ -69,8 +66,8 @@ router.post('/createEvent', (req, res) => {
       })
       .catch((error) => {
         res.status(error.StatusCode);
-        res.send({'error' : data.Status});
-      })
+        res.send({ 'error' : data.Status });
+      });
   });
 });
 
@@ -84,10 +81,10 @@ router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
   if((req.query.key != null || req.query.key != undefined)
     && ObjectID.isValid(req.params.event)
     && ObjectID.isValid(req.params.user)
-    && (req.params.userType.toLowerCase() ==="admin" || (req.params.userType.toLowerCase() ==="attendee"))){
-    eventController.registerUserID(req.params.event, req.params.user, req.params.userType === "admin", req.query.key)
+    && (req.params.userType.toLowerCase() ==='admin' || (req.params.userType.toLowerCase() === 'attendee'))) {
+    eventController.registerUserID(req.params.event, req.params.user, req.params.userType === 'admin', req.query.key)
       .then((data) => {
-        return userController.registerEventID(req.params.user, req.params.event, req.params.userType === "admin")
+        return userController.registerEventID(req.params.user, req.params.event, req.params.userType === 'admin');
       })
       .then((data) => {
         res.status(data.StatusCode);
@@ -95,15 +92,13 @@ router.post('/Event/:event/JoinEvent/:userType/:user', (req, res) => {
       })
       .catch((error) => {
         res.status(error.StatusCode);
-        res.send({'error' : error.Status});
+        res.send({ 'error': error.Status });
       });
   } else {
     res.status(400);
-    res.send({'error': 'Bad Request'});
+    res.send({ 'error': 'Bad Request' });
   }
 });
-
-
 
 /**
  * Add additional user information api end point at
@@ -120,7 +115,6 @@ router.post('/setUserProfileFields', (req, res) => {
   userController.addUserProfileFields(req, res);
 });
 
-
 /**
  * Fetch all events user is part of at {ip}:3000/User/{UserObjectID}/FetchAllEvents
  * @param {request} req, {response} res
@@ -130,18 +124,17 @@ router.post('/setUserProfileFields', (req, res) => {
  *         }
  */
 router.get('/User/:user/FetchAllEvents', (req, res) => {
-
   userController.fetchEventList(req, res, (eventList) => {
     if(eventList !== null || eventList !== undefined) {
       if(eventList.AdminEventID.length >= 1 || eventList.AttendeeEventID.length >= 1) {
         eventController.fetchEventObjects(eventList, req, res);
       } else {
         res.status(404);
-        res.send({'error' : 'The user is not a member of an event'});
+        res.send({ 'error': 'The user is not a member of an event' });
       }
     } else {
       res.status(404);
-      res.send({'error' : 'The user is not a member of an event'});
+      res.send({ 'error': 'The user is not a member of an event' });
     }
   });
 });
@@ -155,38 +148,40 @@ router.get('/User/:user/FetchAllEvents', (req, res) => {
  *         }
  */
 router.get('/Event/:event/FetchAllUsers', (req, res) => {
-  if(ObjectID.isValid(req.params.event)){
+  if(ObjectID.isValid(req.params.event)) {
     if (req.query.filter) {
-      if (req.query.filter === "Admin" || req.query.filter === "Attendee") {
+      if (req.query.filter === 'Admin' || req.query.filter === 'Attendee') {
         eventController.fetchAllUserIDs(req.params.event, req.query.filter)
           .then((data) => {
-            if (req.query.filter === "Admin") {
+            if (req.query.filter === 'Admin') {
               return userController.fetchUserDetails(data.Admins);
-            } else{
+            } else {
               return userController.fetchUserDetails(data.Attendees);
             }
           })
           .then((users) => {
             res.status(200);
-            res.send(req.query.filter === "Admin" ? {Admins: users} : {Attendees: users});
+            res.send(req.query.filter === 'Admin' ? { Admins: users } : { Attendees: users });
           })
           .catch((error) => {
             res.status(error.StatusCode);
             res.send(error.Status);
           });
-      } else{
+      } else {
         res.status(400);
-        res.send({'error' : 'Bad Request'});
+        res.send({ 'error': 'Bad Request' });
       }
     } else {
-      var responseObject = {}, userIDsObject;
+      var responseObject = {};
+      var userIDsObject;
+
       eventController.fetchAllUserIDs(req.params.event, null)
         .then((data) => {
           userIDsObject = data;
-          if(userIDsObject.Admins.length < 1){
+          if(userIDsObject.Admins.length < 1) {
             return [];
           }
-          return userController.fetchUserDetails(userIDsObject.Admins,{
+          return userController.fetchUserDetails(userIDsObject.Admins, {
             FirstName: 1,
             LastName: 1,
             ProfileImageURL: 1
@@ -195,7 +190,7 @@ router.get('/Event/:event/FetchAllUsers', (req, res) => {
         .then((adminDetails) => {
           responseObject.Admins = adminDetails;
 
-          if(userIDsObject.Attendees.length < 1){
+          if(userIDsObject.Attendees.length < 1) {
             return [];
           }
           return userController.fetchUserDetails(userIDsObject.Attendees, {
@@ -216,9 +211,8 @@ router.get('/Event/:event/FetchAllUsers', (req, res) => {
     }
   } else {
     res.status(400);
-    res.send({'error' : 'Bad Request'});
+    res.send({ 'error': 'Bad Request' });
   }
-
 });
 
 /**
@@ -243,9 +237,9 @@ router.get('/Event/:event', (req, res) => {
 router.post('/Event/:event/CreateChat', (req, res) => {
   if(req.body.UserID === undefined || req.body.UserID === null ||
     req.body.Message === undefined || req.body.Message === null ||
-    req.params.event === null || req.query.participants.length < 2){
+    req.params.event === null || req.query.participants.length < 2) {
     res.status(400);
-    res.send({'error' : 'Bad request'});
+    res.send({ 'error': 'Bad request' });
   } else {
     chatController.instantiateChat(req.params.event, req.query.participants, req.body)
       .then((data) => {
@@ -257,7 +251,7 @@ router.post('/Event/:event/CreateChat', (req, res) => {
       })
       .catch((error) => {
         res.status(error.StatusCode);
-        res.send({'error' : error.Status});
+        res.send({ 'error': error.Status });
       });
   }
 });
@@ -274,9 +268,9 @@ router.post('/Event/:event/CreateChat', (req, res) => {
  *
  */
 router.get('/User/:user/Event/:event/FetchAllChats', (req, res) => {
-  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)){
+  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)) {
     res.status(400);
-    res.send({'error' : 'Bad request'});
+    res.send({ 'error': 'Bad request' });
   } else {
     userController.fetchUserChats(req.params.user, req.params.event)
       .then((IDs) => {
@@ -299,7 +293,7 @@ router.get('/User/:user/Event/:event/FetchAllChats', (req, res) => {
       .catch((error) => {
         res.status(error.StatusCode);
         res.send(error.Status);
-      })
+      });
   }
 });
 
@@ -313,14 +307,14 @@ router.get('/User/:user/Event/:event/FetchAllChats', (req, res) => {
 router.get('/User/:user/Chat/:chat/FetchMessages', (req, res) => {
   if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.chat) ||
     req.query.lowerbound == null ||req.query.lowerbound == undefined || isNaN(req.query.lowerbound) || Number(req.query.lowerbound) <= 0 ||
-    req.query.upperbound == null ||req.query.upperbound == undefined || isNaN(req.query.upperbound)){
+    req.query.upperbound == null ||req.query.upperbound == undefined || isNaN(req.query.upperbound)) {
     res.status(400);
-    res.send({'error' : 'Bad request'});
+    res.send({ 'error': 'Bad request' });
   } else {
     chatController.isUserPartOfChat(req.params.user, req.params.chat)
       .then((isPartOfChat) => {
-        if(isPartOfChat){
-          return chatController.fetchDeltaMessages(req.params.chat,req.query.lowerbound, req.query.upperbound)
+        if(isPartOfChat) {
+          return chatController.fetchDeltaMessages(req.params.chat, req.query.lowerbound, req.query.upperbound);
         }
       })
       .then((messages) => {
@@ -342,17 +336,17 @@ router.get('/User/:user/Chat/:chat/FetchMessages', (req, res) => {
  *
  */
 router.get('/User/:user/Event/:event/FetchLatestNewsfeed', (req, res) => {
-  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)){
+  if(!ObjectID.isValid(req.params.user) || !ObjectID.isValid(req.params.event)) {
     res.status(400);
-    res.send({'error' : 'Bad request'});
+    res.send({ 'error': 'Bad request' });
   } else {
     eventController.checkIfUserIsPartOfEvent(req.params.event, req.params.user, null, true,
       (userIsPartOfEvent, event) => {
-        if(userIsPartOfEvent){
+        if(userIsPartOfEvent) {
           newsfeedController.fetchAllPosts(event.NewsfeedID)
             .then((posts) => {
               res.status(200);
-              res.send({'Posts' : posts});
+              res.send({ 'Posts': posts });
             })
             .catch((error) => {
               res.status(error.StatusCode);
@@ -360,47 +354,47 @@ router.get('/User/:user/Event/:event/FetchLatestNewsfeed', (req, res) => {
             });
         } else {
           res.status(401);
-          res.send("Unauthorized Request");
+          res.send('Unauthorized Request');
         }
-      })
+      });
   }
 });
 
-//SKU - This route is probably useless.
+// SKU - This route is probably useless.
 /**
  * Upload Image api end point at {ip}:3000/uploadImage
  * @param {request} req incoming request
  * @param {response} res callback response
  * @return void or error
  */
-router.post('/uploadImage', function (req, res) {
-  imageUploader(req, res, function (err) {
+router.post('/uploadImage', (req, res) => {
+  imageUploader(req, res, (err) => {
     if (err) {
       console.log(err);
-      return res.end("Error uploading file.");
+      return res.end('Error uploading file.');
     }
-    res.end("File is uploaded");
+    res.end('File is uploaded');
   });
 });
 
-//ZKH - ******END PUBLIC ROUTES******
+// ZKH - ******END PUBLIC ROUTES******
 
 
-//ZKH - ******PROTECTED ROUTES******
+// ZKH - ******PROTECTED ROUTES******
 
-router.get('/api/token', function (req, res) {
-  var token = jwt.sign({foo: 'bar'}, secret);
-  res.send({token: token});
+router.get('/api/token', (req, res) => {
+  var token = jwt.sign({ foo: 'bar' }, secret);
+  res.send({ token: token });
 });
 
-router.get('/api/protected', function (req, res) {
+router.get('/api/protected', (req, res) => {
   res.send('Welcome to /api/protected route.');
 });
 
-//ZKH - ******END PROTECTED ROUTES******
+// ZKH - ******END PROTECTED ROUTES******
 
 
-//ZKH - ******TESTING ROUTES*********
+// ZKH - ******TESTING ROUTES*********
 
 
 /**
@@ -409,7 +403,7 @@ router.get('/api/protected', function (req, res) {
  * @param {response} res callback response
  * @return Json hash of users or error
  */
-router.get('/testing/getAllUsers', function (req, res) {
+router.get('/testing/getAllUsers', (req, res) => {
   userController.testingGetAllUsers(req, res);
 });
 
@@ -420,7 +414,7 @@ router.get('/testing/getAllUsers', function (req, res) {
  * @param {response} res callback response
  * @return Json hash of events or error
  */
-router.get('/testing/getAllEvents', function (req, res) {
+router.get('/testing/getAllEvents', (req, res) => {
   eventController.testingGetAllEvents(req, res);
 });
 
@@ -481,7 +475,7 @@ router.post('/testing/createNewEvent', (req, res) => {
   eventController.testingCreateEvent(req, res);
 });
 
-//ZKH - ******END TESTING ROUTES******
+// ZKH - ******END TESTING ROUTES******
 
 
 /**

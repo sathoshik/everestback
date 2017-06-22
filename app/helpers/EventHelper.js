@@ -10,25 +10,24 @@ var Event = mongoose.model('Event');
 module.exports = {
 
   retrieveUserEvents : (eventsObject, res, callback) => {
+    var finalObject = {};
+    var numberOfKeys = Object.keys(eventsObject).length;
+    var counter = 0;
 
-    var finalObject = {}, numberOfKeys = Object.keys(eventsObject).length, counter = 0;
-
-    for(let key in eventsObject){
+    for(let key in eventsObject) {
       let additionalObject ={};
       try {
-
-        eventsObject[key]
+        eventsObject[key];
       } catch(e) {
         console.log(e);
         res.status(404);
-        res.send({'error' : 'Unsuccessful operation'});
+        res.send({ 'error': 'Unsuccessful operation' });
         return;
       }
 
-      if(eventsObject[key] != undefined && eventsObject[key] != null ){
-
-        if(eventsObject[key].length >= 1 ){
-          Event.find({'_id' : {$in : eventsObject[key]}},{
+      if(eventsObject[key] != undefined && eventsObject[key] != null ) {
+        if(eventsObject[key].length >= 1 ) {
+          Event.find({ '_id': { $in : eventsObject[key] } }, {
             _id: 1,
             EventName : 1,
             EventImageURL : 1,
@@ -38,10 +37,10 @@ module.exports = {
             EndTime : 1
           }, (err, events) => {
             counter++;
-            if(err){
+            if(err) {
               console.log(err);
               res.status(500);
-              res.send({'error' : err.toString()});
+              res.send({ 'error': err.toString() });
               return;
             } else if (events.length < 1 || events === null || events === undefined) {
               additionalObject[key] = [];
@@ -53,7 +52,7 @@ module.exports = {
               finalObject = Object.assign({}, finalObject, additionalObject);
             }
 
-            if(counter == numberOfKeys){
+            if(counter == numberOfKeys) {
               done();
             }
           });
@@ -64,7 +63,7 @@ module.exports = {
             finalObject,
             additionalObject);
 
-          if (counter == numberOfKeys){
+          if (counter == numberOfKeys) {
             done();
           }
         }
@@ -75,7 +74,7 @@ module.exports = {
           finalObject,
           additionalObject);
 
-        if (counter == numberOfKeys){
+        if (counter == numberOfKeys) {
           done();
         }
       }

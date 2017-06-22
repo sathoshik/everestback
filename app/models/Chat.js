@@ -11,9 +11,9 @@ var Schema = mongoose.Schema;
  *
  */
 var chatSchema = new Schema({
-  "EventID": {type: mongoose.Schema.Types.ObjectId, required: true},
-  "Participants": [{type: mongoose.Schema.Types.ObjectId, required: true}],
-  "MessageCount": {type: Number, required: true}
+  'EventID': { type: mongoose.Schema.Types.ObjectId, required: true },
+  'Participants': [{ type: mongoose.Schema.Types.ObjectId, required: true }],
+  'MessageCount': { type: Number, required: true }
 });
 
 /**
