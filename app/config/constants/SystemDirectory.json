@@ -1,3 +1,4 @@
 {
-  "uploadImages" : "/public/uploads"
+  "public" : "/public",
+  "uploads" : "/public/uploads"
 }
