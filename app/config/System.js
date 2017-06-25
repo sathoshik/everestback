@@ -4,16 +4,13 @@
 //  Copyright © 2016 Everest. All rights reserved.
 //
 
-
 var SystemDirectory = require('./constants/SystemDirectory.json');
 var fs = require('fs');
-
 
 /**
  * System check for all folder structure variables throughout environment
  */
 var System = this;
-
 
 /**
  * System check for all folder structure variables throughout environment
