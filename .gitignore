@@ -5,3 +5,5 @@ node_modules
 *.pem
 aws-start.sh
 jenkins-start.sh
+_SpecRunner.html
+.grunt

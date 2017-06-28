@@ -24,11 +24,12 @@ System.directoryCheck = () => {
     } catch (err) {
       try {
         fs.mkdirSync(__dirname + '/../..' + SystemDirectory[directory]);
+        console.log('Creating directory ' + __dirname + '/../..' + SystemDirectory[directory]);
       } catch (err) {
         console.log(err);
         throw err;
       }
     }
   }
-  return;
+  return true;
 };

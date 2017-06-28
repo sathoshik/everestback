@@ -21,7 +21,9 @@
   },
   "devDependencies": {
     "grunt": "^1.0.1",
+    "grunt-contrib-jasmine": "^1.1.0",
     "grunt-eslint": "^19.0.0",
+    "jasmine": "^2.6.0",
     "load-grunt-tasks": "^3.5.2"
   }
 }
